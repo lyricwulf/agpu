@@ -1,0 +1,41 @@
+[package]
+name = "agpu"
+version = "0.1.0"
+edition = "2018"
+resolver = "2"
+description = "Abstract GPU Project"
+homepage = "https://github.com/lyricwulf/agpu"
+repository = "https://github.com/lyricwulf/agpu"
+keywords = ["gpu", "graphics", "compute"]
+license = "MIT"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+wgpu = { version = "0.11", features = ["spirv"] }
+futures = "0.3"
+bytemuck = "1.7"
+num-traits = "0.2"
+raw-window-handle = "0.3"
+tracing = "0.1"
+
+[dependencies.winit]
+version = "0.25"
+optional = true
+
+[dependencies.egui]
+optional = true 
+version = "0.15"
+features = ["convert_bytemuck"]
+
+[dependencies.egui-winit]
+version = "0.15"
+optional = true
+
+[features]
+profiler = []
+default = ["profiler", "egui", "winit", "egui-winit"]
+
+[dev-dependencies]  
+# Used in example
+tracing-subscriber = "0.3"
