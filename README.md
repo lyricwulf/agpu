@@ -1,7 +1,16 @@
-<div>
-    <h3 align="center"> agpu </h1>
-    <p align="center"> Abstract GPU Project </p>
+<div align="center">
+    <a href="https://github.com/lyricwulf/agpu">
+        <img src="logo.png" alt="Logo" width="128" height="72" style="object-fit:cover"/>
+    </a>
+    <h2 align="center"> Abstract GPU Project </h2>
+    <p align="center"> 
+        The easiest and most ergonomic GPU library 
+        <br/>
+        <a href="https://github.com/lyricwulf/agpu/tree/main/examples"> Explore examples » </a>
+    </p>
 </div>
+
+---
 
 `agpu` is an abstraction library to the [wgpu](https://github.com/gfx-rs/wgpu) library, with the goal of providing a GPU framework for both small applications and large engines alike, with minimal boilerplate and maximum readability.
 
