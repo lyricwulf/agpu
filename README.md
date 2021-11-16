@@ -1,6 +1,6 @@
 <div align="center">
     <a href="https://github.com/lyricwulf/agpu">
-        <img src="logo.png" alt="Logo" width="128" height="72" style="object-fit:cover"/>
+        <img src="logo.png" alt="Logo" width="128" height="128"/>
     </a>
     <h2 align="center"> Abstract GPU Project </h2>
     <p align="center"> 
