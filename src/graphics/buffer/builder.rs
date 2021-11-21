@@ -42,21 +42,9 @@ impl<'a> BufferBuilder<'a> {
         self
     }
 
-    /// The buffer will be initialized with this content
-    /// Mutually exclusive to `with_size`
-    /// See also [`with_data_slice`]
-    pub fn with_data<T>(mut self, data: &'a T) -> Self
-    where
-        T: Pod,
-    {
-        self.content = BufferInitContent::Data(bytemuck::bytes_of(data));
-        self
-    }
-
     /// The buffer will be initialized with the contents of the given slice
     /// Mutually exclusive to `with_size`
-    /// See also [`with_data`]
-    pub fn with_data_slice<T>(mut self, data: &'a [T]) -> Self
+    pub fn with_data<T>(mut self, data: &'a [T]) -> Self
     where
         T: Pod,
     {
