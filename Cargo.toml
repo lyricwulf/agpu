@@ -13,11 +13,16 @@ license = "MIT"
 
 [dependencies]
 wgpu = { version = "0.11", features = ["spirv"] }
+half = { version = "1.8", optional = true }
 futures = "0.3"
 bytemuck = "1.7"
 num-traits = "0.2"
 raw-window-handle = "0.3"
 tracing = "0.1"
+
+[dependencies.agpu-macro]
+path = "./macro"
+optional = true
 
 [dependencies.winit]
 version = "0.25"
@@ -28,14 +33,13 @@ optional = true
 version = "0.15"
 features = ["convert_bytemuck"]
 
-[dependencies.egui-winit]
-version = "0.15"
-optional = true
-
 [features]
 profiler = []
-default = ["profiler", "egui", "winit", "egui-winit"]
+macro = ["agpu-macro"]
+default = ["profiler", "egui", "winit", "macro", "half"]
 
 [dev-dependencies]  
 # Used in example
 tracing-subscriber = "0.3"
+# egui example
+egui-winit = "0.15"

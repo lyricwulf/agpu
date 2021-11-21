@@ -5,6 +5,9 @@ mod view;
 use futures::executor::block_on;
 pub use view::*;
 
+mod vertex_layout;
+pub use vertex_layout::*;
+
 use crate::GpuHandle;
 use std::ops::Deref;
 

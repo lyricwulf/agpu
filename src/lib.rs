@@ -8,6 +8,10 @@ pub mod prelude;
 /// Export wgpu crate
 pub use wgpu;
 
+/// Export half crate   
+#[cfg(feature = "half")]
+pub use half::{bf16, f16};
+
 pub(crate) mod macros;
 
 /// Public constants

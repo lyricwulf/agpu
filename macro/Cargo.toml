@@ -1,0 +1,24 @@
+[package]
+name = "agpu-macro"
+version = "0.1.0"
+edition = "2018"
+resolver = "2"
+description = "agpu derive macros"
+homepage = "https://github.com/lyricwulf/agpu"
+repository = "https://github.com/lyricwulf/agpu"
+keywords = ["gpu", "graphics", "compute"]
+license = "MIT"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = "1.0"
+quote = "1.0"
+bytemuck = "1.7"
+tracing = "0.1"
+wgpu = "0.11"
+
+[dev-dependencies]  
+# Test using trait
+agpu = { path = "../" }
