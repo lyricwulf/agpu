@@ -256,12 +256,12 @@ fn main() {
                     if i >= vertex_buffers.len() {
                         vertex_buffers.push((
                             gpu.create_buffer("")
-                                .with_data_slice(&mesh.vertices)
+                                .with_data(&mesh.vertices)
                                 .as_vertex_buffer()
                                 .allow_copy_to()
                                 .build(),
                             gpu.create_buffer("")
-                                .with_data_slice(&mesh.indices)
+                                .with_data(&mesh.indices)
                                 .as_index_buffer()
                                 .allow_copy_to()
                                 .build(),
@@ -273,7 +273,7 @@ fn main() {
                         {
                             vertex_buffers[i].0 = gpu
                                 .create_buffer("")
-                                .with_data_slice(&mesh.vertices)
+                                .with_data(&mesh.vertices)
                                 .as_vertex_buffer()
                                 .allow_copy_to()
                                 .build();
@@ -288,7 +288,7 @@ fn main() {
                         if size_of::<u32>() * mesh.indices.len() > vertex_buffers[i].1.size() {
                             vertex_buffers[i].1 = gpu
                                 .create_buffer("")
-                                .with_data_slice(&mesh.indices)
+                                .with_data(&mesh.indices)
                                 .as_index_buffer()
                                 .allow_copy_to()
                                 .build();
