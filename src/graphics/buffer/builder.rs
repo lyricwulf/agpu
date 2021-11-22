@@ -1,8 +1,6 @@
 use bytemuck::Pod;
 use wgpu::util::DeviceExt;
 
-use tracing::warn;
-
 use crate::{Buffer, GpuHandle};
 
 pub enum BufferInitContent<'a> {
@@ -15,7 +13,6 @@ pub enum BufferInitContent<'a> {
 pub struct BufferBuilder<'a> {
     pub gpu: GpuHandle,
     pub label: Option<&'a str>,
-    pub content: BufferInitContent<'a>,
     pub usage: wgpu::BufferUsages,
 }
 impl<'a> BufferBuilder<'a> {
@@ -24,7 +21,6 @@ impl<'a> BufferBuilder<'a> {
         BufferBuilder {
             gpu,
             label: Some(label),
-            content: BufferInitContent::Size(0),
             usage: wgpu::BufferUsages::empty(),
         }
     }
@@ -32,23 +28,6 @@ impl<'a> BufferBuilder<'a> {
     /// Set a label that GPU debuggers can display
     pub fn with_label(mut self, label: &'a str) -> Self {
         self.label = Some(label);
-        self
-    }
-
-    /// The buffer will be initialized with this size
-    /// Mutually exclusive to `with_data`
-    pub fn with_size(mut self, size: u64) -> Self {
-        self.content = BufferInitContent::Size(size);
-        self
-    }
-
-    /// The buffer will be initialized with the contents of the given slice
-    /// Mutually exclusive to `with_size`
-    pub fn with_data<T>(mut self, data: &'a [T]) -> Self
-    where
-        T: Pod,
-    {
-        self.content = BufferInitContent::Data(bytemuck::cast_slice(data));
         self
     }
 
@@ -126,12 +105,9 @@ impl<'a> BufferBuilder<'a> {
     }
 
     // This is used by build() and build_and_map() for our convenience
-    fn build_impl(&self, mapped_at_creation: bool) -> (wgpu::Buffer, u64) {
-        match self.content {
+    fn build_impl(&self, init: BufferInitContent) -> (wgpu::Buffer, u64) {
+        match init {
             BufferInitContent::Data(data) => {
-                if mapped_at_creation {
-                    warn!("mapped a buffer on creation, but it is already being initialized with data");
-                }
                 (
                     self.gpu
                         .device
@@ -148,7 +124,7 @@ impl<'a> BufferBuilder<'a> {
                     label: self.label,
                     size,
                     usage: self.usage,
-                    mapped_at_creation,
+                    mapped_at_creation: false,
                 }),
                 size,
             ),
@@ -157,8 +133,8 @@ impl<'a> BufferBuilder<'a> {
 
     /// Creates the buffer
     #[must_use]
-    pub fn build(&self) -> Buffer {
-        let (inner, size) = self.build_impl(false);
+    pub fn build<T>(&self, contents: &[T]) -> Buffer where T: Pod {
+        let (inner, size) = self.build_impl(BufferInitContent::Data(bytemuck::cast_slice(contents)));
 
         Buffer {
             inner,
@@ -167,10 +143,10 @@ impl<'a> BufferBuilder<'a> {
         }
     }
 
-    /// Allows a buffer to be mapped immediately after they are made.
+    /// Builds a buffer with 0s, with size in bytes
     #[must_use]
-    pub fn build_and_map(&self) -> Buffer {
-        let (inner, size) = self.build_impl(true);
+    pub fn build_uninit(&self, size: u64) -> Buffer {
+        let (inner, size) = self.build_impl(BufferInitContent::Size(size));
 
         Buffer {
             inner,

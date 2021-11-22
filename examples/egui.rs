@@ -256,15 +256,13 @@ fn main() {
                     if i >= vertex_buffers.len() {
                         vertex_buffers.push((
                             gpu.create_buffer("")
-                                .with_data(&mesh.vertices)
                                 .as_vertex_buffer()
                                 .allow_copy_to()
-                                .build(),
+                                .build(&mesh.vertices),
                             gpu.create_buffer("")
-                                .with_data(&mesh.indices)
                                 .as_index_buffer()
                                 .allow_copy_to()
-                                .build(),
+                                .build(&mesh.indices),
                         ));
                     } else {
                         // resize buffer if needed
@@ -273,10 +271,9 @@ fn main() {
                         {
                             vertex_buffers[i].0 = gpu
                                 .create_buffer("")
-                                .with_data(&mesh.vertices)
                                 .as_vertex_buffer()
                                 .allow_copy_to()
-                                .build();
+                                .build(&mesh.vertices);
                         } else {
                             gpu.queue.write_buffer(
                                 &vertex_buffers[i].0,
@@ -288,10 +285,9 @@ fn main() {
                         if size_of::<u32>() * mesh.indices.len() > vertex_buffers[i].1.size() {
                             vertex_buffers[i].1 = gpu
                                 .create_buffer("")
-                                .with_data(&mesh.indices)
                                 .as_index_buffer()
                                 .allow_copy_to()
-                                .build();
+                                .build(&mesh.indices);
                         } else {
                             gpu.queue.write_buffer(
                                 &vertex_buffers[i].1,

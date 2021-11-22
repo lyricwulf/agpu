@@ -84,10 +84,9 @@ impl<'a> Viewport {
 
         let data_buffer = gpu
             .create_buffer("Viewport buffer")
-            .with_data(&[width as f32, height as f32])
             .as_uniform_buffer()
             .allow_copy_to()
-            .build()
+            .build(&[width as f32, height as f32])
             .inner;
 
         // Wrap in RefCell for interior mutability.
