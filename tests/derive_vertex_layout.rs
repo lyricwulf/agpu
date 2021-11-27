@@ -4,10 +4,10 @@ use agpu::{VertexLayout, VertexLayoutInstance};
 
 #[derive(VertexLayout)]
 struct MixedTypes {
-    position: [f32; 3],
-    color: [u8; 4],
-    normal: [f32; 4],
-    some_raw_data: (u16, u16, u16, u16),
+    _position: [f32; 3],
+    _color: [u8; 4],
+    _normal: [f32; 4],
+    _some_raw_data: (u16, u16, u16, u16),
 }
 
 #[test]
@@ -47,8 +47,8 @@ fn vertex_layout_mixed_types() {
 
 #[derive(VertexLayoutInstance)]
 struct PerInstanceData {
-    rotation: [f32; 4],
-    position: [f32; 3],
+    _rotation: [f32; 4],
+    _position: [f32; 3],
 }
 
 #[test]
