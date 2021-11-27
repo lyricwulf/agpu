@@ -60,3 +60,25 @@ macro_rules! bitor_variadic {
         $e | <$t>::$i.bits()
     };
 }
+
+// Internal use macro to (ab)use Deref trait to get the underlying wgpu type
+#[macro_export]
+macro_rules! wgpu_inner_deref {
+    ($name: ident, $wgpu: ident) => {
+        impl ::std::ops::Deref for $name {
+            type Target = ::wgpu::$wgpu;
+            fn deref(&self) -> &Self::Target {
+                &self.inner
+            }
+        }
+        impl ::std::ops::DerefMut for $name {
+            fn deref_mut(&mut self) -> &mut Self::Target {
+                &mut self.inner
+            }
+        }
+    };
+    ($name: ident) => {
+        // We shouldn't need the `$crate` but it won't compile without it
+        $crate::wgpu_inner_deref!($name, $name);
+    };
+}
