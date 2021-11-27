@@ -1,6 +1,8 @@
 mod builder;
 pub use builder::*;
 
+mod binding;
+
 mod view;
 use futures::executor::block_on;
 pub use view::*;
