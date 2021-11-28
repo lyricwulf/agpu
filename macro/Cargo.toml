@@ -1,6 +1,6 @@
 [package]
 name = "agpu-macro"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2018"
 resolver = "2"
 description = "agpu derive macros"
