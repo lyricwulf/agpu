@@ -98,7 +98,9 @@ impl PipelineBuilder<'_> {
         Ok(ShaderSource::Wgsl(Cow::Owned(wgsl)))
     }
 
-    pub fn shader_auto_load(path: &str) -> Result<ShaderSource, GpuError> {
+    /// 'a: lifetime of the shader source
+    /// 'b: lifetime of the input path
+    pub fn shader_auto_load<'a, 'b>(path: &'b str) -> Result<ShaderSource<'a>, GpuError> {
         if let Ok(spirv) = Self::make_spirv_owned(std::fs::read(path).unwrap()) {
             Ok(spirv)
         } else if let Ok(wgsl) = Self::make_wgsl_owned(std::fs::read_to_string(path).unwrap()) {
