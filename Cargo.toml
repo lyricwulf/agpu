@@ -43,3 +43,5 @@ default = ["profiler", "egui", "winit", "macro", "half"]
 tracing-subscriber = "0.3"
 # egui example
 egui-winit = "0.15"
+# math lib for examples
+nalgebra = "0.29"
