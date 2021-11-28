@@ -7,6 +7,9 @@ pub use sampler::*;
 mod builder;
 pub use builder::*;
 
+// Re-export TextureFormat
+pub use wgpu::TextureFormat;
+
 pub struct Texture {
     inner: wgpu::Texture,
     pub view: wgpu::TextureView,

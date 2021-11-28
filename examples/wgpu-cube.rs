@@ -103,7 +103,6 @@ fn main() -> Result<(), BoxError> {
         .new_buffer("Vertex buffer")
         .as_vertex_buffer()
         .create(&vertex_data);
-
     let index_buffer = gpu
         .new_buffer("Index buffer")
         .as_index_buffer()
@@ -114,7 +113,7 @@ fn main() -> Result<(), BoxError> {
     let texels = create_texels(size as usize);
     let texture = gpu
         .new_texture("Texture")
-        .with_format(wgpu::TextureFormat::R8Uint)
+        .with_format(TextureFormat::R8Uint)
         .allow_binding()
         .allow_copy_to()
         .create(&texels, &[size, size]);
