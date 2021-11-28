@@ -86,10 +86,10 @@ impl crate::Texture {
     pub fn bind_storage_texture(&self) -> Binding {
         Binding {
             visibility: Binding::DEFAULT_VISIBILITY,
-            ty: wgpu::BindingType::Texture {
-                sample_type: wgpu::TextureSampleType::Float { filterable: false },
+            ty: wgpu::BindingType::StorageTexture {
                 view_dimension: wgpu::TextureViewDimension::D2,
-                multisampled: false,
+                access: wgpu::StorageTextureAccess::ReadWrite,
+                format: self.format,
             },
             resource: wgpu::BindingResource::TextureView(&self.view),
         }
@@ -124,7 +124,7 @@ impl Binding<'_> {
         in_vertex_fragment => VERTEX_FRAGMENT
     );
 
-    pub fn buffer_dynamic_offset(mut self) -> Self {
+    pub const fn buffer_dynamic_offset(mut self) -> Self {
         if let wgpu::BindingType::Buffer {
             ty,
             min_binding_size,
@@ -138,6 +138,24 @@ impl Binding<'_> {
             };
         } else {
             panic!("dynamic_offset is only supported for uniform buffers");
+        }
+        self
+    }
+
+    pub const fn sample_uint(mut self) -> Self {
+        if let wgpu::BindingType::Texture {
+            view_dimension,
+            multisampled,
+            ..
+        } = self.ty
+        {
+            self.ty = wgpu::BindingType::Texture {
+                sample_type: wgpu::TextureSampleType::Uint,
+                view_dimension,
+                multisampled,
+            };
+        } else {
+            panic!("sample_uint is only supported for textures");
         }
         self
     }
