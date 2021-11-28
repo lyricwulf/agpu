@@ -230,7 +230,7 @@ impl<'a> PipelineBuilder<'a> {
     }
 
     #[must_use]
-    pub fn build(&self) -> Pipeline {
+    pub fn create(&self) -> Pipeline {
         // Create vertex module
         let vertex_module = self.gpu.device.create_shader_module(&self.vertex);
 

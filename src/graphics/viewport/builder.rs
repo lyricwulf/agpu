@@ -22,7 +22,7 @@ impl<'a> ViewportBuilder {
 
     /// Build the Viewport.
     /// Note this builder is consumed to pass the GpuHandle to the built Viewport.
-    pub fn build(self) -> Viewport {
+    pub fn create(self) -> Viewport {
         let size = self.window.inner_size();
         let surface = unsafe { self.gpu.instance.create_surface(&self.window) };
         let format = if let Some(format) = self.format {

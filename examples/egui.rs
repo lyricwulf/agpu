@@ -31,15 +31,15 @@ fn main() {
         .unwrap();
 
     // Create the viewport
-    let viewport = gpu.create_viewport(window).build();
+    let viewport = gpu.new_viewport(window).create();
 
     let mut last_update_inst = Instant::now();
 
     let pipeline = gpu
-        .create_pipeline()
+        .new_pipeline()
         .with_fragment(include_bytes!("shader/dog.frag.spv"))
         .with_bind_groups(&[])
-        .build();
+        .create();
 
     let mut egui_ctx = egui::CtxRef::default();
     // let mut stat_counts = [0; 5];
@@ -153,12 +153,12 @@ fn main() {
     });
 
     let ui_pipeline = gpu
-        .create_pipeline()
+        .new_pipeline()
         .with_vertex_layouts(&[vertex_layout])
         .with_fragment(include_bytes!("shader/egui.frag.spv"))
         .with_vertex(include_bytes!("shader/egui.vert.spv"))
         .with_bind_groups(&[&bind_group_layout])
-        .build();
+        .create();
 
     // Start the event loop
     event_loop.run(move |event, _, control_flow| {
@@ -255,14 +255,14 @@ fn main() {
                     // create any missing buffers
                     if i >= vertex_buffers.len() {
                         vertex_buffers.push((
-                            gpu.create_buffer("")
+                            gpu.new_buffer("")
                                 .as_vertex_buffer()
                                 .allow_copy_to()
-                                .build(&mesh.vertices),
-                            gpu.create_buffer("")
+                                .create(&mesh.vertices),
+                            gpu.new_buffer("")
                                 .as_index_buffer()
                                 .allow_copy_to()
-                                .build(&mesh.indices),
+                                .create(&mesh.indices),
                         ));
                     } else {
                         // resize buffer if needed
@@ -270,10 +270,10 @@ fn main() {
                             > vertex_buffers[i].0.size()
                         {
                             vertex_buffers[i].0 = gpu
-                                .create_buffer("")
+                                .new_buffer("")
                                 .as_vertex_buffer()
                                 .allow_copy_to()
-                                .build(&mesh.vertices);
+                                .create(&mesh.vertices);
                         } else {
                             gpu.queue.write_buffer(
                                 &vertex_buffers[i].0,
@@ -284,10 +284,10 @@ fn main() {
 
                         if size_of::<u32>() * mesh.indices.len() > vertex_buffers[i].1.size() {
                             vertex_buffers[i].1 = gpu
-                                .create_buffer("")
+                                .new_buffer("")
                                 .as_index_buffer()
                                 .allow_copy_to()
-                                .build(&mesh.indices);
+                                .create(&mesh.indices);
                         } else {
                             gpu.queue.write_buffer(
                                 &vertex_buffers[i].1,

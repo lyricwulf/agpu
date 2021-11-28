@@ -70,7 +70,7 @@ impl TextureBuilder<'_> {
     }
 
     /// Assumed that the input data is uniformly sized
-    pub fn build2d<T>(mut self, data: &[&[T]]) -> crate::Texture
+    pub fn create2d<T>(mut self, data: &[&[T]]) -> crate::Texture
     where
         T: bytemuck::Pod,
     {

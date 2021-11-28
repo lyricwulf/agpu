@@ -14,9 +14,9 @@ fn main() -> Result<(), agpu::BoxError> {
 
     let gpu = Gpu::builder().build(&window)?;
 
-    let viewport = gpu.create_viewport(window).build();
+    let viewport = gpu.new_viewport(window).create();
 
-    let pipeline = gpu.create_pipeline().build();
+    let pipeline = gpu.new_pipeline().create();
 
     event_loop.run(move |event, _, control_flow| match event {
         Event::RedrawRequested(_) => {

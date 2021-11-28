@@ -5,7 +5,7 @@ pub struct SamplerBuilder<'a, 'gpu> {
 }
 
 impl SamplerBuilder<'_, '_> {
-    pub fn build(&self) -> wgpu::Sampler {
+    pub fn create(&self) -> wgpu::Sampler {
         self.gpu.create_sampler(&self.inner)
     }
 

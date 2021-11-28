@@ -50,17 +50,22 @@ impl GpuHandle {
     /// Create a Viewport for displaying to the given window.
     // Lifetime `a`: The reference Gpu and Window must outlive ViewportBuilder
     #[must_use]
-    pub fn create_viewport(&self, window: Window) -> ViewportBuilder {
+    pub fn new_viewport(&self, window: Window) -> ViewportBuilder {
         ViewportBuilder::new(self.clone(), window)
     }
 
     #[must_use]
-    pub fn create_buffer<'a>(&self, label: &'a str) -> BufferBuilder<'a> {
+    pub fn create_viewport(&self, window: Window) -> crate::Viewport {
+        ViewportBuilder::new(self.clone(), window).create()
+    }
+
+    #[must_use]
+    pub fn new_buffer<'a>(&self, label: &'a str) -> BufferBuilder<'a> {
         BufferBuilder::new(self.clone(), label)
     }
 
     #[must_use]
-    pub fn create_pipeline<'a>(&self) -> crate::pipeline::PipelineBuilder<'a> {
+    pub fn new_pipeline<'a>(&self) -> crate::pipeline::PipelineBuilder<'a> {
         crate::pipeline::PipelineBuilder::new(self.clone())
     }
 

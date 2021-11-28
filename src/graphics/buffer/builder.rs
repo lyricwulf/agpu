@@ -105,20 +105,18 @@ impl<'a> BufferBuilder<'a> {
     }
 
     // This is used by build() and build_and_map() for our convenience
-    fn build_impl(&self, init: BufferInitContent) -> (wgpu::Buffer, u64) {
+    fn create_impl(&self, init: BufferInitContent) -> (wgpu::Buffer, u64) {
         match init {
-            BufferInitContent::Data(data) => {
-                (
-                    self.gpu
-                        .device
-                        .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                            label: self.label,
-                            usage: self.usage,
-                            contents: data,
-                        }),
-                    data.len() as u64,
-                )
-            }
+            BufferInitContent::Data(data) => (
+                self.gpu
+                    .device
+                    .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                        label: self.label,
+                        usage: self.usage,
+                        contents: data,
+                    }),
+                data.len() as u64,
+            ),
             BufferInitContent::Size(size) => (
                 self.gpu.device.create_buffer(&wgpu::BufferDescriptor {
                     label: self.label,
@@ -133,8 +131,12 @@ impl<'a> BufferBuilder<'a> {
 
     /// Creates the buffer
     #[must_use]
-    pub fn build<T>(&self, contents: &[T]) -> Buffer where T: Pod {
-        let (inner, size) = self.build_impl(BufferInitContent::Data(bytemuck::cast_slice(contents)));
+    pub fn create<T>(&self, contents: &[T]) -> Buffer
+    where
+        T: Pod,
+    {
+        let (inner, size) =
+            self.create_impl(BufferInitContent::Data(bytemuck::cast_slice(contents)));
 
         Buffer {
             inner,
@@ -145,8 +147,8 @@ impl<'a> BufferBuilder<'a> {
 
     /// Builds a buffer with 0s, with size in bytes
     #[must_use]
-    pub fn build_uninit(&self, size: u64) -> Buffer {
-        let (inner, size) = self.build_impl(BufferInitContent::Size(size));
+    pub fn create_uninit(&self, size: u64) -> Buffer {
+        let (inner, size) = self.create_impl(BufferInitContent::Size(size));
 
         Buffer {
             inner,

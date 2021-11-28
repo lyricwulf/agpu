@@ -278,7 +278,7 @@ impl<'a> GpuProgramBuilder<'a> {
 
         let gpu = self.gpu.clone();
         let gpu = gpu.with_profiler().build(&window)?;
-        let viewport = gpu.create_viewport(window).build();
+        let viewport = gpu.new_viewport(window).create();
 
         Ok(GpuProgram {
             event_loop: Cell::new(Some(event_loop)),
