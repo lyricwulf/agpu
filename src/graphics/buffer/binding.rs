@@ -137,6 +137,7 @@ impl Binding<'_> {
                 min_binding_size,
             };
         } else {
+            #[cfg(feature = "const_panic")]
             panic!("dynamic_offset is only supported for uniform buffers");
         }
         self
@@ -155,6 +156,7 @@ impl Binding<'_> {
                 multisampled,
             };
         } else {
+            #[cfg(feature = "const_panic")]
             panic!("sample_uint is only supported for textures");
         }
         self
