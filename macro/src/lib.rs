@@ -1,6 +1,3 @@
-#![allow(dead_code, unreachable_code)]
-#![feature(const_trait_impl)]
-
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
