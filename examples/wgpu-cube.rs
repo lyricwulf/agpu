@@ -115,7 +115,6 @@ fn main() -> Result<(), BoxError> {
         .new_texture("Texture")
         .with_format(TextureFormat::R8Uint)
         .allow_binding()
-        .allow_copy_to()
         .create(&texels, &[size, size]);
 
     // Create other resources

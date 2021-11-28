@@ -25,6 +25,9 @@ impl TextureBuilder<'_> {
         }
     }
 
+    /// Create the buffer with the given data as its contents.
+    /// Implicitly adds the `COPY_DST` usage if it is not present in the descriptor,
+    /// as it is required to be able to upload the data to the gpu.
     pub fn create<T>(mut self, data: &[T], size: &[u32]) -> crate::Texture
     where
         T: bytemuck::Pod,
@@ -38,6 +41,7 @@ impl TextureBuilder<'_> {
             )
         };
 
+        self.texture.usage |= wgpu::TextureUsages::COPY_DST;
         self.texture.size = wgpu::Extent3d {
             width,
             height,
