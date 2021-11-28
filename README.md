@@ -7,6 +7,11 @@
         The easiest and most ergonomic GPU library 
         <br/>
         <a href="https://github.com/lyricwulf/agpu/tree/main/examples"> Explore examples » </a>
+        <br/>
+        <br/>
+        <a href="https://github.com/lyricwulf/agpu/actions/workflows/rust.yml"><img src="https://github.com/lyricwulf/agpu/actions/workflows/rust.yml/badge.svg"></a>
+        <a href="https://crates.io/crates/agpu"><img src="https://img.shields.io/crates/v/agpu"></a>
+        <a href="https://docs.rs/agpu"><img src="https://img.shields.io/docsrs/agpu"></a>
     </p>
 </div>
 
@@ -62,6 +67,8 @@ Some integrations are provided as default features to this crate:
 - [`egui`](https://github.com/emilk/egui) for GUI (WIP)
 
 You can (*not yet!*) disable them by opting out of default features, as well as create your own integration using this library.
+
+---
 
 #### License
 
