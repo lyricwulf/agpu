@@ -42,4 +42,13 @@ impl Buffer {
     pub fn size(&self) -> usize {
         self.size as usize
     }
+
+    pub fn write<T>(&self, data: &[T])
+    where
+        T: bytemuck::Pod,
+    {
+        self.gpu
+            .queue
+            .write_buffer(&self.inner, 0, bytemuck::cast_slice(data));
+    }
 }
