@@ -68,6 +68,34 @@ impl crate::Buffer {
     }
 }
 
+impl crate::Texture {
+    /// Create a textureview binding.
+    pub fn bind_texture(&self) -> Binding {
+        Binding {
+            visibility: Binding::DEFAULT_VISIBILITY,
+            ty: wgpu::BindingType::Texture {
+                sample_type: wgpu::TextureSampleType::Float { filterable: false },
+                view_dimension: wgpu::TextureViewDimension::D2,
+                multisampled: false,
+            },
+            resource: wgpu::BindingResource::TextureView(&self.view),
+        }
+    }
+
+    // Create a storage texture binding.
+    pub fn bind_storage_texture(&self) -> Binding {
+        Binding {
+            visibility: Binding::DEFAULT_VISIBILITY,
+            ty: wgpu::BindingType::Texture {
+                sample_type: wgpu::TextureSampleType::Float { filterable: false },
+                view_dimension: wgpu::TextureViewDimension::D2,
+                multisampled: false,
+            },
+            resource: wgpu::BindingResource::TextureView(&self.view),
+        }
+    }
+}
+
 macro_rules! gen_binding_vis_fn {
     ($($fn_name:ident => $stage:ident),*) => {
         $(
