@@ -45,11 +45,9 @@ impl TextureBuilder<'_> {
         };
         self.texture.dimension = size_dim(&self.texture.size);
 
-        dbg!(&self.texture);
         let texture = self.gpu.device.create_texture(&self.texture);
         let view = texture.create_view(&self.view);
 
-        dbg!(&self.texture);
         self.gpu.queue.write_texture(
             texture.as_image_copy(),
             bytemuck::cast_slice(data),
@@ -66,6 +64,7 @@ impl TextureBuilder<'_> {
         crate::Texture {
             inner: texture,
             view,
+            format: self.texture.format,
         }
     }
 
@@ -99,6 +98,7 @@ impl TextureBuilder<'_> {
         crate::Texture {
             inner: texture,
             view,
+            format: self.texture.format,
         }
     }
 

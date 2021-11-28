@@ -10,5 +10,6 @@ pub use builder::*;
 pub struct Texture {
     inner: wgpu::Texture,
     pub view: wgpu::TextureView,
+    pub format: wgpu::TextureFormat,
 }
 crate::wgpu_inner_deref!(Texture);
