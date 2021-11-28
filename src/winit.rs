@@ -1,4 +1,4 @@
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 
 use crate::{Frame, GpuBuilder, GpuError, GpuHandle, Viewport};
 
@@ -14,7 +14,10 @@ pub struct GpuProgram {
     pub event_loop: Cell<Option<winit::event_loop::EventLoop<()>>>,
     pub gpu: GpuHandle,
     pub viewport: Viewport,
+    pub on_resize: RefCell<Option<ResizeFn>>,
 }
+
+type ResizeFn = Box<dyn Fn(&GpuProgram, u32, u32)>;
 
 impl GpuProgram {
     pub fn builder<'f>() -> GpuProgramBuilder<'f> {
@@ -68,6 +71,10 @@ impl GpuProgram {
                     } => {
                         let (width, height) = new_size.into();
                         self.viewport.resize(width, height);
+                        let on_resize = self.on_resize.borrow();
+                        if let Some(handler) = on_resize.as_ref() {
+                            handler(&self, width, height);
+                        }
                     }
 
                     // The state has been changed. We assume the display should change,
@@ -108,6 +115,11 @@ impl GpuProgram {
                 let event = Event::Winit(event);
                 event_handler(event, event_loop, control_flow);
             })
+    }
+
+    pub fn on_resize(&self, handler: impl Fn(&GpuProgram, u32, u32) + 'static) {
+        let mut on_resize = self.on_resize.borrow_mut();
+        *on_resize = Some(Box::new(handler));
     }
 }
 
@@ -284,6 +296,7 @@ impl<'a> GpuProgramBuilder<'a> {
             event_loop: Cell::new(Some(event_loop)),
             viewport,
             gpu,
+            on_resize: RefCell::new(None),
         })
     }
 }
