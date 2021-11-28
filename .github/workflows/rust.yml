@@ -17,9 +17,9 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Setup | System Dependencies
-        uses: lyricwulf/abc@v1.1.0
+        uses: lyricwulf/abc@v1.2.0
         with:
-          linux: libgtk-3-dev
+          linux: libgtk-3-dev libxcb-composite0-dev libxcb-shape0-dev libxcb-xfixes0-dev
 
       - name: Setup | Rust
         uses: actions-rs/toolchain@v1
