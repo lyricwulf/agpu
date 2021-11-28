@@ -158,6 +158,48 @@ impl RenderPass<'_> {
     pub fn draw_one(&mut self, vertices: u32) {
         self.inner.draw(0..vertices, 0..1);
     }
+
+    pub fn draw_one_indexed(&mut self, vertices: u32) {
+        self.inner.draw_indexed(0..vertices, 0, 0..1);
+    }
+}
+impl<'a> RenderPass<'a> {
+    /// Shadows wgpu::RenderPass::set_bind_group and returns self for chaining
+    pub fn set_bind_group(
+        &mut self,
+        index: u32,
+        bind_group: &'a wgpu::BindGroup,
+        offsets: &[wgpu::DynamicOffset],
+    ) -> &mut Self {
+        self.inner.set_bind_group(index, bind_group, offsets);
+        self
+    }
+
+    /// Shadows wgpu::RenderPass::set_pipeline and returns self for chaining
+    pub fn set_pipeline(&mut self, pipeline: &'a wgpu::RenderPipeline) -> &mut Self {
+        self.inner.set_pipeline(pipeline);
+        self
+    }
+
+    /// Shadows wgpu::RenderPass::set_index_buffer and returns self for chaining
+    pub fn set_index_buffer(
+        &mut self,
+        buffer_slice: wgpu::BufferSlice<'a>,
+        index_format: wgpu::IndexFormat,
+    ) -> &mut Self {
+        self.inner.set_index_buffer(buffer_slice, index_format);
+        self
+    }
+
+    /// Shadows wgpu::RenderPass::set_vertex_buffer and returns self for chaining
+    pub fn set_vertex_buffer(
+        &mut self,
+        slot: u32,
+        buffer_slice: wgpu::BufferSlice<'a>,
+    ) -> &mut Self {
+        self.inner.set_vertex_buffer(slot, buffer_slice);
+        self
+    }
 }
 
 impl<'a> Deref for RenderPass<'a> {
