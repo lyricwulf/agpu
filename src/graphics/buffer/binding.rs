@@ -170,7 +170,6 @@ pub struct BindingGroup {
 
 impl BindingGroup {
     pub fn new(device: &wgpu::Device, bindings: &[Binding]) -> Self {
-        bindings[0].clone().in_vertex();
         let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: None,
             entries: bindings
@@ -211,23 +210,3 @@ impl crate::Gpu {
         BindingGroup::new(&self.device, bindings)
     }
 }
-
-// // Desired usage:
-// // [sampler.binding(), buffer.binding(), texture.binding()];
-
-// pub struct BindingType {
-//     inner: wgpu::BindingType,
-// }
-// impl std::ops::Deref for BindingType {
-//     type Target = wgpu::BindingType;
-
-//     fn deref(&self) -> &Self::Target {
-//         &self.inner
-//     }
-// }
-// impl std::ops::DerefMut for BindingType {
-//     fn deref_mut(&mut self) -> &mut <Self as std::ops::Deref>::Target {
-//         &mut self.inner
-//     }
-// }
-// impl BindingType {}
