@@ -31,7 +31,9 @@ impl Deref for Buffer {
 impl Buffer {
     /// # Errors
     /// Errors according to [`wgpu::BufferAsyncError`]
-    pub fn download(&self) -> Result<wgpu::util::DownloadBuffer, wgpu::BufferAsyncError> {
+    pub fn download_immediately(
+        &self,
+    ) -> Result<wgpu::util::DownloadBuffer, wgpu::BufferAsyncError> {
         let fut = wgpu::util::DownloadBuffer::read_buffer(
             &self.gpu.device,
             &self.gpu.queue,
