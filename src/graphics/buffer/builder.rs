@@ -85,6 +85,10 @@ impl<'a> BufferBuilder<'a> {
         self
     }
 
+    pub fn allow_copy(self) -> Self {
+        self.allow_copy_to().allow_copy_from()
+    }
+
     /// Sets the usage of the buffer
     /// See also `add_usage` and `rm_usage`
     pub fn with_usage(mut self, usage: wgpu::BufferUsages) -> Self {
@@ -155,5 +159,12 @@ impl<'a> BufferBuilder<'a> {
             gpu: self.gpu.clone(),
             size,
         }
+    }
+
+    pub fn create_empty<T>(&self, count: usize) -> Buffer
+    where
+        T: Sized,
+    {
+        self.create_uninit((count * std::mem::size_of::<T>()) as u64)
     }
 }
