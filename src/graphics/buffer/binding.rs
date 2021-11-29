@@ -14,6 +14,7 @@ impl crate::Buffer {
     #[must_use]
     pub fn bind_ubo(&self) -> Binding {
         Binding {
+            device: &self.gpu.device,
             visibility: Binding::DEFAULT_VISIBILITY,
             ty: wgpu::BindingType::Buffer {
                 ty: wgpu::BufferBindingType::Uniform,
@@ -35,6 +36,7 @@ impl crate::Buffer {
     #[must_use]
     pub fn bind_ssbo(&self) -> Binding {
         Binding {
+            device: &self.gpu.device,
             visibility: Binding::DEFAULT_VISIBILITY,
             ty: wgpu::BindingType::Buffer {
                 ty: wgpu::BufferBindingType::Storage { read_only: false },
@@ -57,6 +59,7 @@ impl crate::Buffer {
     #[must_use]
     pub fn bind_ssbo_readonly(&self) -> Binding {
         Binding {
+            device: &self.gpu.device,
             visibility: Binding::DEFAULT_VISIBILITY,
             ty: wgpu::BindingType::Buffer {
                 ty: wgpu::BufferBindingType::Storage { read_only: true },
@@ -72,6 +75,7 @@ impl crate::Texture {
     /// Create a textureview binding.
     pub fn bind_texture(&self) -> Binding {
         Binding {
+            device: &self.gpu.device,
             visibility: Binding::DEFAULT_VISIBILITY,
             ty: wgpu::BindingType::Texture {
                 sample_type: wgpu::TextureSampleType::Float { filterable: false },
@@ -85,6 +89,7 @@ impl crate::Texture {
     // Create a storage texture binding.
     pub fn bind_storage_texture(&self) -> Binding {
         Binding {
+            device: &self.gpu.device,
             visibility: Binding::DEFAULT_VISIBILITY,
             ty: wgpu::BindingType::StorageTexture {
                 view_dimension: wgpu::TextureViewDimension::D2,
@@ -109,6 +114,7 @@ macro_rules! gen_binding_vis_fn {
 
 #[derive(Clone)]
 pub struct Binding<'a> {
+    pub device: &'a wgpu::Device,
     pub visibility: wgpu::ShaderStages,
     pub ty: wgpu::BindingType,
     pub resource: wgpu::BindingResource<'a>,
@@ -208,5 +214,14 @@ impl BindingGroup {
 impl crate::Gpu {
     pub fn create_binding_group(&self, bindings: &[Binding]) -> BindingGroup {
         BindingGroup::new(&self.device, bindings)
+    }
+}
+
+// Not sure if this is a good idea but it looks nice
+// "Potentially" unsafe because bindings[0] must exist but when would that ever
+// happen?
+impl From<&[Binding<'_>]> for BindingGroup {
+    fn from(bindings: &[Binding]) -> Self {
+        BindingGroup::new(bindings[0].device, bindings)
     }
 }
