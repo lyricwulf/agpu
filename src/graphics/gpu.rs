@@ -4,7 +4,11 @@ pub use builder::GpuBuilder;
 pub use wgpu::Backends;
 
 use crate::{BufferBuilder, GpuError, Profiler, ViewportBuilder};
-use std::{ops::Deref, rc::Rc};
+use core::mem::ManuallyDrop;
+use std::{
+    ops::{Deref, DerefMut},
+    rc::Rc,
+};
 use winit::window::Window;
 
 /// The HW GPU context which contains all wgpu context info.
@@ -75,9 +79,14 @@ impl GpuHandle {
         crate::pipeline::PipelineBuilder::new(self.clone())
     }
 
-    pub fn create_command_encoder(&self, label: &str) -> wgpu::CommandEncoder {
-        self.device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: Some(label) })
+    pub fn create_command_encoder(&self, label: &str) -> CommandEncoder {
+        let inner = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: Some(label) });
+        CommandEncoder {
+            inner: ManuallyDrop::new(inner),
+            queue: &self.queue,
+        }
     }
 
     pub(crate) fn begin_profiler_section<'a>(
@@ -119,5 +128,28 @@ impl Deref for GpuHandle {
     type Target = Gpu;
     fn deref(&self) -> &Self::Target {
         &self.context
+    }
+}
+
+pub struct CommandEncoder<'a> {
+    inner: ManuallyDrop<wgpu::CommandEncoder>,
+    queue: &'a wgpu::Queue,
+}
+impl Deref for CommandEncoder<'_> {
+    type Target = wgpu::CommandEncoder;
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+impl DerefMut for CommandEncoder<'_> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
+}
+
+impl Drop for CommandEncoder<'_> {
+    fn drop(&mut self) {
+        let inner = unsafe { ManuallyDrop::take(&mut self.inner) };
+        self.queue.submit([inner.finish()]);
     }
 }
