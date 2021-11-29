@@ -37,6 +37,12 @@ impl Gpu {
         }
     }
 }
+impl Deref for Gpu {
+    type Target = wgpu::Device;
+    fn deref(&self) -> &Self::Target {
+        &self.device
+    }
+}
 
 /// A struct that wraps over `Rc<Gpu>` which can be passed around by clone.
 /// Because this is a `Rc`, it will automatically be freed when there are no
