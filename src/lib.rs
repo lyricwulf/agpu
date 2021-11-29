@@ -3,6 +3,9 @@
 mod graphics;
 pub use graphics::*;
 
+mod compute;
+pub use compute::*;
+
 pub mod prelude;
 
 /// Export wgpu crate
