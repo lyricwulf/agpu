@@ -39,7 +39,8 @@ fn execute_gpu(numbers: &[u32]) -> Option<Vec<u32>> {
         .create(numbers);
 
     // A bind group defines how buffers are accessed by shaders.
-    let bind_group: BindingGroup = [storage_buffer.bind_ssbo().in_compute()].as_slice().into();
+    let bind_group: BindingGroup =
+        gpu.create_binding_group(&[storage_buffer.bind_ssbo().in_compute()]);
 
     // A pipeline defines how shaders are executed.
     gpu.new_compute()
