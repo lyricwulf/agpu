@@ -117,8 +117,8 @@ impl<'a> GpuBuilder<'a> {
         block_on(self.build_impl(Some(window)))
     }
 
-    pub async fn build_headless(self) -> Result<GpuHandle, GpuError> {
-        self.build_impl::<NoWindow>(None).await
+    pub fn build_headless(self) -> Result<GpuHandle, GpuError> {
+        block_on(self.build_impl::<NoWindow>(None))
     }
 
     /// Build the `GpuContext` from the builder.
