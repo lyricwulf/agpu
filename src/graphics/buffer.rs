@@ -2,6 +2,7 @@ mod builder;
 pub use builder::*;
 
 mod binding;
+pub use binding::*;
 
 mod view;
 use futures::executor::block_on;
@@ -36,6 +37,7 @@ impl Buffer {
             &self.gpu.queue,
             &self.inner.slice(..),
         );
+        self.gpu.poll(wgpu::Maintain::Wait);
         block_on(fut)
     }
 
@@ -50,5 +52,9 @@ impl Buffer {
         self.gpu
             .queue
             .write_buffer(&self.inner, 0, bytemuck::cast_slice(data));
+    }
+
+    pub fn copy_to(&self, encoder: &mut wgpu::CommandEncoder, target: &Buffer) {
+        encoder.copy_buffer_to_buffer(&self.inner, 0, &target.inner, 0, self.size);
     }
 }
