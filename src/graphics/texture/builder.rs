@@ -66,6 +66,7 @@ impl TextureBuilder<'_> {
         );
 
         crate::Texture {
+            gpu: self.gpu,
             inner: texture,
             view,
             format: self.texture.format,
@@ -73,6 +74,7 @@ impl TextureBuilder<'_> {
     }
 
     /// Assumed that the input data is uniformly sized
+    #[deprecated(note = "Use `create` instead")]
     pub fn create2d<T>(mut self, data: &[&[T]]) -> crate::Texture
     where
         T: bytemuck::Pod,
@@ -100,6 +102,7 @@ impl TextureBuilder<'_> {
         );
 
         crate::Texture {
+            gpu: self.gpu,
             inner: texture,
             view,
             format: self.texture.format,
