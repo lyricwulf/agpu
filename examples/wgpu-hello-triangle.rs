@@ -5,7 +5,7 @@ fn main() -> Result<(), agpu::BoxError> {
 
     let example_pipeline = program
         .gpu
-        .new_pipeline()
+        .new_pipeline("Example pipeline")
         .with_vertex_fragment(include_bytes!("shader/hello-triangle.wgsl"))
         .create();
 

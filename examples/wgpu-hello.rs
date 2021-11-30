@@ -1,7 +1,7 @@
 fn main() -> Result<(), agpu::BoxError> {
     let program = agpu::GpuProgram::builder().build()?;
 
-    let example_pipeline = program.gpu.new_pipeline().create();
+    let example_pipeline = program.gpu.new_pipeline("").create();
 
     program.run_draw(move |mut frame| {
         frame

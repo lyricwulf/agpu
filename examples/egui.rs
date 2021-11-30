@@ -36,7 +36,7 @@ fn main() {
     let mut last_update_inst = Instant::now();
 
     let pipeline = gpu
-        .new_pipeline()
+        .new_pipeline("")
         .with_fragment(include_bytes!("shader/dog.frag.spv"))
         .with_bind_groups(&[])
         .create();
@@ -153,7 +153,7 @@ fn main() {
     });
 
     let ui_pipeline = gpu
-        .new_pipeline()
+        .new_pipeline("")
         .with_vertex_layouts(&[vertex_layout])
         .with_fragment(include_bytes!("shader/egui.frag.spv"))
         .with_vertex(include_bytes!("shader/egui.vert.spv"))

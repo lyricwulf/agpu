@@ -11,6 +11,7 @@ use crate::RenderPipeline;
 pub struct PipelineBuilder<'a> {
     /// Handle to the Gpu
     gpu: GpuHandle,
+    label: Option<&'a str>,
     /// Data that is used to build the pipeline
     /// This is a seperate struct to take advantage of Default trait derivation
     desc: PipelineDescriptor<'a>,
@@ -27,7 +28,6 @@ pub struct PipelineBuilder<'a> {
 
 #[derive(Default)]
 struct PipelineDescriptor<'a> {
-    label: Option<&'a str>,
     // PIPELINE LAYOUT
     /// Bind groups that this pipeline uses. The first entry will provide all the bindings for
     /// "set = 0", second entry will provide all the bindings for "set = 1" etc.
@@ -121,7 +121,7 @@ impl PipelineBuilder<'_> {
     }
 }
 impl<'a> PipelineBuilder<'a> {
-    pub fn new(gpu: GpuHandle) -> Self {
+    pub fn new(gpu: GpuHandle, label: &'a str) -> Self {
         let vertex = wgpu::util::make_spirv(include_bytes!("../../shader/screen.vert.spv"));
         let fragment = wgpu::util::make_spirv(include_bytes!("../../shader/uv.frag.spv"));
 
@@ -136,6 +136,7 @@ impl<'a> PipelineBuilder<'a> {
 
         Self {
             gpu,
+            label: Some(label),
             desc: PipelineDescriptor::default(),
             vertex,
             fragment,
@@ -268,7 +269,7 @@ impl<'a> PipelineBuilder<'a> {
             .device
             .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
                 layout: Some(&layout),
-                label: self.desc.label,
+                label: self.label,
                 vertex: wgpu::VertexState {
                     module: &vertex_module,
                     entry_point: self.vertex_entry,
@@ -287,6 +288,6 @@ impl<'a> PipelineBuilder<'a> {
 
     /// Helper function to append a suffix to the label, if Some
     fn label_suffix(&self, suffix: &str) -> Option<String> {
-        self.desc.label.map(|label| format!("{} {}", label, suffix))
+        self.label.map(|label| format!("{} {}", label, suffix))
     }
 }

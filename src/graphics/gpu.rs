@@ -75,8 +75,8 @@ impl GpuHandle {
     }
 
     #[must_use]
-    pub fn new_pipeline<'a>(&self) -> crate::pipeline::PipelineBuilder<'a> {
-        crate::pipeline::PipelineBuilder::new(self.clone())
+    pub fn new_pipeline<'a>(&self, label: &'a str) -> crate::pipeline::PipelineBuilder<'a> {
+        crate::pipeline::PipelineBuilder::new(self.clone(), label)
     }
 
     pub fn create_command_encoder(&self, label: &str) -> CommandEncoder {

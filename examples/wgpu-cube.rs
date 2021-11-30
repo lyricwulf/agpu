@@ -131,7 +131,7 @@ fn main() -> Result<(), BoxError> {
     ]);
 
     let pipeline = gpu
-        .new_pipeline()
+        .new_pipeline("Cube pipeline")
         .with_vertex_fragment(include_bytes!("shader/cube.wgsl"))
         .with_vertex_layouts(&[Vertex::vertex_buffer_layout::<0>()])
         .with_bind_groups(&[&bind_group.layout])
