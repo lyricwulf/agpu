@@ -121,11 +121,8 @@ impl ComputePipelineBuilder<'_> {
     }
 
     #[must_use]
-    pub fn create_with_bindings<'f>(self, bindings: &'f [&'f BindingGroup]) -> ComputePipeline<'f> {
-        let bind_group_layouts = bindings
-            .iter()
-            .map(|b| &b.bind_group_layout)
-            .collect::<Vec<_>>();
+    pub fn create_with_bindings<'f>(self, bindings: &'f [&'f BindGroup]) -> ComputePipeline<'f> {
+        let bind_group_layouts = bindings.iter().map(|b| &b.layout).collect::<Vec<_>>();
 
         let pipeline = self.create_with_bindings_impl(&bind_group_layouts);
         ComputePipeline {
@@ -145,7 +142,7 @@ pub struct ComputePipeline<'a> {
     /// We store the gpu handle so we can do standalone compute passes
     pub(crate) gpu: GpuHandle,
     pub inner: wgpu::ComputePipeline,
-    pub bind_groups: &'a [&'a BindingGroup],
+    pub bind_groups: &'a [&'a BindGroup],
     pub push_constants: &'a [u8],
 }
 wgpu_inner_deref!(ComputePipeline<'_>, ComputePipeline);
@@ -156,7 +153,7 @@ impl ComputePipeline<'_> {
         c_pass.set_pipeline(&self.inner);
         // Set bind groups
         for (i, b) in self.bind_groups.iter().enumerate() {
-            c_pass.set_bind_group(i as _, &b.bind_group, &[]);
+            c_pass.set_bind_group(i as _, &b.inner, &[]);
         }
         // TODO: Set push constants?
 

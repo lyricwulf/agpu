@@ -125,7 +125,7 @@ fn main() -> Result<(), BoxError> {
         .allow_copy_to()
         .create(mx.as_ref());
 
-    let bind_group = gpu.create_binding_group(&[
+    let bind_group = gpu.create_bind_group(&[
         uniform_buf.bind_ubo().in_vertex(),
         texture.bind_texture().sample_uint().in_fragment(),
     ]);
@@ -134,7 +134,7 @@ fn main() -> Result<(), BoxError> {
         .new_pipeline()
         .with_vertex_fragment(include_bytes!("shader/cube.wgsl"))
         .with_vertex_layouts(&[Vertex::vertex_buffer_layout::<0>()])
-        .with_bind_groups(&[&bind_group.bind_group_layout])
+        .with_bind_groups(&[&bind_group.layout])
         .cull_back()
         .create();
 
@@ -152,7 +152,7 @@ fn main() -> Result<(), BoxError> {
             .set_pipeline(&pipeline)
             .set_vertex_buffer(0, vertex_buffer.slice(..))
             .set_index_buffer(index_buffer.slice(..), wgpu::IndexFormat::Uint16)
-            .set_bind_group(0, &bind_group.bind_group, &[])
+            .set_bind_group(0, &bind_group.inner, &[])
             .draw_one_indexed(index_data.len() as _);
     });
 }

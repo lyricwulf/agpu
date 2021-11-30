@@ -169,12 +169,12 @@ impl Binding<'_> {
     }
 }
 
-pub struct BindingGroup {
-    pub bind_group_layout: wgpu::BindGroupLayout,
-    pub bind_group: wgpu::BindGroup,
+pub struct BindGroup {
+    pub layout: wgpu::BindGroupLayout,
+    pub inner: wgpu::BindGroup,
 }
 
-impl BindingGroup {
+impl BindGroup {
     pub fn new(device: &wgpu::Device, bindings: &[Binding]) -> Self {
         let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: None,
@@ -205,23 +205,23 @@ impl BindingGroup {
                 .as_slice(),
         });
 
-        BindingGroup {
-            bind_group_layout,
-            bind_group,
+        BindGroup {
+            layout: bind_group_layout,
+            inner: bind_group,
         }
     }
 }
 impl crate::Gpu {
-    pub fn create_binding_group(&self, bindings: &[Binding]) -> BindingGroup {
-        BindingGroup::new(&self.device, bindings)
+    pub fn create_bind_group(&self, bindings: &[Binding]) -> BindGroup {
+        BindGroup::new(&self.device, bindings)
     }
 }
 
 // Not sure if this is a good idea but it looks nice
 // "Potentially" unsafe because bindings[0] must exist but when would that ever
 // happen?
-impl From<&[Binding<'_>]> for BindingGroup {
+impl From<&[Binding<'_>]> for BindGroup {
     fn from(bindings: &[Binding]) -> Self {
-        BindingGroup::new(bindings[0].device, bindings)
+        BindGroup::new(bindings[0].device, bindings)
     }
 }
