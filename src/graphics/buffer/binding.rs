@@ -173,6 +173,7 @@ pub struct BindGroup {
     pub layout: wgpu::BindGroupLayout,
     pub inner: wgpu::BindGroup,
 }
+crate::wgpu_inner_deref!(BindGroup);
 
 impl BindGroup {
     pub fn new(device: &wgpu::Device, bindings: &[Binding]) -> Self {
