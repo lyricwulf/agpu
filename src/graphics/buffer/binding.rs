@@ -120,7 +120,7 @@ pub struct Binding<'a> {
     pub resource: wgpu::BindingResource<'a>,
 }
 impl Binding<'_> {
-    pub(crate) const DEFAULT_VISIBILITY: wgpu::ShaderStages = wgpu::ShaderStages::all();
+    pub(crate) const DEFAULT_VISIBILITY: wgpu::ShaderStages = wgpu::ShaderStages::VERTEX_FRAGMENT;
 
     gen_binding_vis_fn!(
         in_none => NONE,
