@@ -27,28 +27,27 @@ pub struct GpuBuilder<'a> {
     trace_path: Option<&'a std::path::Path>,
     /// The label for this context.
     label: Option<&'a str>,
-    /// The texture format of the swapchain.
-    swapchain_format: wgpu::TextureFormat,
 }
 impl Default for GpuBuilder<'_> {
     fn default() -> Self {
         Self::new()
     }
 }
-impl<'a> GpuBuilder<'a> {
+impl GpuBuilder<'_> {
     /// Create a `GpuBuilder` with sensible defaults.
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             backends: wgpu::Backends::PRIMARY,
             power_preference: wgpu::PowerPreference::HighPerformance,
             limits: wgpu::Limits::default(),
             label: None,
-            swapchain_format: crate::DEFAULT_SWAP_CHAIN_FORMAT,
             features: wgpu::Features::default(),
             optional_features: wgpu::Features::empty(),
             trace_path: None,
         }
     }
+}
+impl<'a> GpuBuilder<'a> {
     /// Sets the backends that wgpu should use.
     pub fn with_backends(mut self, backends: wgpu::Backends) -> Self {
         self.backends = backends;
@@ -73,12 +72,6 @@ impl<'a> GpuBuilder<'a> {
     /// The argument must outlive the builder.
     pub fn with_label(mut self, label: &'a str) -> Self {
         self.label = Some(label);
-        self
-    }
-
-    /// Sets the format for the swapchain.
-    pub fn with_swapchain_format(mut self, format: wgpu::TextureFormat) -> Self {
-        self.swapchain_format = format;
         self
     }
 
@@ -161,6 +154,11 @@ impl<'a> GpuBuilder<'a> {
             .await
             .map_err(GpuError::RequestDeviceError)?;
 
+        let preferred_format = compatible_surface
+            .as_ref()
+            .map(|s| s.get_preferred_format(&adapter))
+            .flatten();
+
         let profiler = Profiler::new(&device, &queue);
 
         let gpu = Gpu {
@@ -169,6 +167,7 @@ impl<'a> GpuBuilder<'a> {
             device,
             queue,
             profiler,
+            preferred_format,
         };
 
         Ok(gpu.to_handle())

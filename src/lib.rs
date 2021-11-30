@@ -17,8 +17,6 @@ pub use half::{bf16, f16};
 
 pub(crate) mod macros;
 
-/// Public constants
-pub const DEFAULT_SWAP_CHAIN_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrgb;
 pub_const_flag!(
     QUERYSET_BUFFER_USAGE,
     wgpu::BufferUsages,

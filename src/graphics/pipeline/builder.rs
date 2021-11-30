@@ -122,6 +122,8 @@ impl PipelineBuilder<'_> {
 }
 impl<'a> PipelineBuilder<'a> {
     pub fn new(gpu: GpuHandle, label: &'a str) -> Self {
+        const DEFAULT_FRAGMENT_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrgb;
+
         let vertex = wgpu::util::make_spirv(include_bytes!("../../shader/screen.vert.spv"));
         let fragment = wgpu::util::make_spirv(include_bytes!("../../shader/uv.frag.spv"));
 
@@ -143,7 +145,8 @@ impl<'a> PipelineBuilder<'a> {
             vertex_entry: "main",
             fragment_entry: "main",
             fragment_targets: &[wgpu::ColorTargetState {
-                format: crate::DEFAULT_SWAP_CHAIN_FORMAT,
+                // TODO: Use gpu.preferred_format
+                format: DEFAULT_FRAGMENT_FORMAT,
                 blend: Some(wgpu::BlendState::ALPHA_BLENDING),
                 write_mask: wgpu::ColorWrites::ALL,
             }],

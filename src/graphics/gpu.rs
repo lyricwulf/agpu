@@ -26,6 +26,7 @@ pub struct Gpu {
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
     pub profiler: Profiler,
+    pub preferred_format: Option<wgpu::TextureFormat>,
 }
 impl Gpu {
     #[allow(clippy::new_ret_no_self)]
@@ -40,7 +41,7 @@ impl Gpu {
     /// An alias for `GpuBuilder::new()`
     #[must_use]
     pub fn builder<'a>() -> GpuBuilder<'a> {
-        GpuBuilder::default()
+        GpuBuilder::new()
     }
 
     /// Converts the Gpu into a `GpuHandle` which can be passed around by clone
