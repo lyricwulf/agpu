@@ -11,7 +11,7 @@ pub fn vertex_layout(item: TokenStream) -> TokenStream {
 
     let name = &ast.ident;
 
-    let vertex_step_mode = quote! { ::wgpu::VertexStepMode::Vertex };
+    let vertex_step_mode = quote! { ::agpu::wgpu::VertexStepMode::Vertex };
 
     // Get fields/types
     let vertex_attrs = match attrs_from_fields(&ast) {
@@ -23,10 +23,10 @@ pub fn vertex_layout(item: TokenStream) -> TokenStream {
        // TODO: impl TRAIT
         impl ::agpu::buffer::VertexLayout for #name {
             // Import trait
-            fn vertex_buffer_layout<const L: u32>() -> wgpu::VertexBufferLayout<'static> {
+            fn vertex_buffer_layout<const L: u32>() -> ::agpu::wgpu::VertexBufferLayout<'static> {
                 use ::agpu::VertexFormatType;
-                wgpu::VertexBufferLayout {
-                    array_stride: ::std::mem::size_of::<Self>() as ::wgpu::BufferAddress,
+                ::agpu::wgpu::VertexBufferLayout {
+                    array_stride: ::std::mem::size_of::<Self>() as ::agpu::wgpu::BufferAddress,
                     step_mode: #vertex_step_mode,
                     attributes: &[
                         #vertex_attrs
@@ -47,7 +47,7 @@ pub fn vertex_layout_instance(item: TokenStream) -> TokenStream {
 
     let name = &ast.ident;
 
-    let vertex_step_mode = quote! { ::wgpu::VertexStepMode::Instance };
+    let vertex_step_mode = quote! { ::agpu::wgpu::VertexStepMode::Instance };
 
     // Get fields/types
     let vertex_attrs = match attrs_from_fields(&ast) {
@@ -59,10 +59,10 @@ pub fn vertex_layout_instance(item: TokenStream) -> TokenStream {
        // TODO: impl TRAIT
         impl ::agpu::buffer::VertexLayout for #name {
             // Import trait
-            fn vertex_buffer_layout<const L: u32>() -> wgpu::VertexBufferLayout<'static> {
+            fn vertex_buffer_layout<const L: u32>() -> ::agpu::wgpu::VertexBufferLayout<'static> {
                 use ::agpu::VertexFormatType;
-                wgpu::VertexBufferLayout {
-                    array_stride: ::std::mem::size_of::<Self>() as ::wgpu::BufferAddress,
+                ::agpu::wgpu::VertexBufferLayout {
+                    array_stride: ::std::mem::size_of::<Self>() as ::agpu::wgpu::BufferAddress,
                     step_mode: #vertex_step_mode,
                     attributes: &[
                         #vertex_attrs
@@ -94,7 +94,7 @@ fn attrs_from_fields(ast: &syn::DeriveInput) -> Result<quote::__private::TokenSt
 
         // Add the vertex attribute entry
         vertex_attrs.extend(quote! {
-            wgpu::VertexAttribute {
+            ::agpu::wgpu::VertexAttribute {
                 offset: #offset,
                 shader_location: L + #i as u32,
                 format: <#ty>::VERTEX_FORMAT_TYPE,
