@@ -328,7 +328,7 @@ fn main() {
                         if let Some((x, y, width, height)) = render_region(clip, &viewport) {
                             ui_pass.set_scissor_rect(x, y, width, height);
                             ui_pass.set_vertex_buffer(0, vb.slice(..));
-                            ui_pass.set_index_buffer(ib.slice(..), wgpu::IndexFormat::Uint32);
+                            ui_pass.set_index_buffer_u32(ib.slice(..));
                             ui_pass.draw_indexed(0..me.indices.len() as u32, 0, 0..1);
                         }
                     }

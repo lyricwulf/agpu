@@ -151,7 +151,7 @@ fn main() -> Result<(), BoxError> {
         rpass
             .set_pipeline(&pipeline)
             .set_vertex_buffer(0, vertex_buffer.slice(..))
-            .set_index_buffer(index_buffer.slice(..), wgpu::IndexFormat::Uint16)
+            .set_index_buffer(index_buffer.slice(..))
             .set_bind_group(0, &bind_group.inner, &[])
             .draw_one_indexed(index_data.len() as _);
     });

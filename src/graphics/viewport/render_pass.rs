@@ -182,12 +182,18 @@ impl<'a> RenderPass<'a> {
     }
 
     /// Shadows wgpu::RenderPass::set_index_buffer and returns self for chaining
-    pub fn set_index_buffer(
-        &mut self,
-        buffer_slice: wgpu::BufferSlice<'a>,
-        index_format: wgpu::IndexFormat,
-    ) -> &mut Self {
-        self.inner.set_index_buffer(buffer_slice, index_format);
+    /// ### USES U16 FORMAT
+    /// See `set_index_buffer_u32` for a version that uses u32
+    pub fn set_index_buffer(&mut self, buffer_slice: wgpu::BufferSlice<'a>) -> &mut Self {
+        self.inner
+            .set_index_buffer(buffer_slice, wgpu::IndexFormat::Uint16);
+        self
+    }
+
+    /// See `set_index_buffer`
+    pub fn set_index_buffer_u32(&mut self, buffer_slice: wgpu::BufferSlice<'a>) -> &mut Self {
+        self.inner
+            .set_index_buffer(buffer_slice, wgpu::IndexFormat::Uint32);
         self
     }
 
