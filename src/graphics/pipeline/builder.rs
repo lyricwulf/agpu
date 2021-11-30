@@ -6,7 +6,7 @@ use wgpu::ShaderSource;
 use crate::GpuError;
 use crate::GpuHandle;
 
-use crate::Pipeline;
+use crate::RenderPipeline;
 
 pub struct PipelineBuilder<'a> {
     /// Handle to the Gpu
@@ -233,7 +233,7 @@ impl<'a> PipelineBuilder<'a> {
     }
 
     #[must_use]
-    pub fn create(&self) -> Pipeline {
+    pub fn create(&self) -> RenderPipeline {
         // Create vertex module
         let vertex_module = self.gpu.device.create_shader_module(&self.vertex);
 
@@ -279,7 +279,7 @@ impl<'a> PipelineBuilder<'a> {
                 multisample: self.desc.multisample,
                 fragment,
             });
-        Pipeline {
+        RenderPipeline {
             gpu: self.gpu.clone(),
             inner: pipeline,
         }
