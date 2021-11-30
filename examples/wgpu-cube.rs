@@ -93,7 +93,7 @@ fn generate_matrix(aspect_ratio: f32) -> nalgebra::Matrix4<f32> {
 
 fn main() -> Result<(), BoxError> {
     // Init gpu
-    let program = agpu::GpuProgram::builder().build()?;
+    let program = agpu::GpuProgram::builder("Cube example").build()?;
     let gpu = program.gpu.clone();
 
     let (vertex_data, index_data) = create_vertices();

@@ -1,5 +1,5 @@
 fn main() -> Result<(), agpu::BoxError> {
-    let program = agpu::GpuProgram::builder().build()?;
+    let program = agpu::GpuProgram::builder("henlo").build()?;
 
     let example_pipeline = program.gpu.new_pipeline("").create();
 

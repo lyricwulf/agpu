@@ -1,9 +1,12 @@
+pub use winit;
+
 use std::cell::{Cell, RefCell};
 
 use crate::{Frame, GpuBuilder, GpuError, GpuHandle, Viewport};
 
 mod display;
 
+/// A window, gpu, and viewport all in one
 // TODO: Add custom user events via EventLoop<T>
 pub struct GpuProgram {
     /// # Event Loop
@@ -20,8 +23,8 @@ pub struct GpuProgram {
 type ResizeFn = Box<dyn Fn(&GpuProgram, u32, u32)>;
 
 impl GpuProgram {
-    pub fn builder<'f>() -> GpuProgramBuilder<'f> {
-        GpuProgramBuilder::new()
+    pub fn builder<'f>(title: &str) -> GpuProgramBuilder<'f> {
+        GpuProgramBuilder::new().with_title(title)
     }
 
     /// Calls the closure each time a new frame is available to draw.
