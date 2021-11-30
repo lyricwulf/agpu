@@ -1,6 +1,7 @@
 mod builder;
 pub use builder::GpuBuilder;
 
+use raw_window_handle::HasRawWindowHandle;
 pub use wgpu::Backends;
 
 use crate::{BufferBuilder, GpuError, Profiler, ViewportBuilder};
@@ -27,6 +28,15 @@ pub struct Gpu {
     pub profiler: Profiler,
 }
 impl Gpu {
+    #[allow(clippy::new_ret_no_self)]
+    /// Shortcut to Self::builder().build() with the default settings.
+    pub fn new<W>(self, window: &W) -> Result<GpuHandle, GpuError>
+    where
+        W: HasRawWindowHandle,
+    {
+        Self::builder().build(window)
+    }
+
     /// An alias for `GpuBuilder::new()`
     #[must_use]
     pub fn builder<'a>() -> GpuBuilder<'a> {
