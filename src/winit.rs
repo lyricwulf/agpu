@@ -89,6 +89,10 @@ impl GpuProgram {
                     // Handle redrawing
                     // We manually call the event handler. This returns out of the closure iteration
                     winit::event::Event::RedrawRequested(w) => {
+                        if let Some(new_size) = *self.viewport.resize_to.borrow() {
+                            event_handler(Event::Resize(new_size), event_loop, control_flow);
+                        };
+
                         // We first call the event handler with the original event,
                         // in case the user wants to perform some operations before creating the Frame
                         event_handler(
@@ -129,6 +133,11 @@ impl GpuProgram {
 pub enum Event<'a, T: 'static> {
     Winit(winit::event::Event<'a, T>),
     RedrawFrame(Frame<'a>),
+    /// Called before resolving a pending resize.
+    /// This is different from winit's ResizeRequested.
+    /// This is only called right before drawing, so there is a promise that the
+    /// window will not be further resized before the next frame is drawn.
+    Resize((u32, u32)),
 }
 
 #[derive(Default)]
