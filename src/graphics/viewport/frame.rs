@@ -10,7 +10,7 @@ pub struct Frame<'a> {
     /// The gpu handle is ref'd because of the short lifetime of Frame
     pub(crate) gpu: &'a GpuHandle,
     surface_texture: ManuallyDrop<wgpu::SurfaceTexture>,
-    view: wgpu::TextureView,
+    pub view: wgpu::TextureView,
     pub encoder: ManuallyDrop<wgpu::CommandEncoder>,
 }
 
