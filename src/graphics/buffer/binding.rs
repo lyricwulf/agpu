@@ -19,7 +19,7 @@ impl crate::Buffer {
             ty: wgpu::BindingType::Buffer {
                 ty: wgpu::BufferBindingType::Uniform,
                 has_dynamic_offset: false,
-                min_binding_size: core::num::NonZeroU64::new(self.size),
+                min_binding_size: None,
             },
             resource: self.as_entire_binding(),
         }
@@ -41,7 +41,7 @@ impl crate::Buffer {
             ty: wgpu::BindingType::Buffer {
                 ty: wgpu::BufferBindingType::Storage { read_only: false },
                 has_dynamic_offset: false,
-                min_binding_size: core::num::NonZeroU64::new(self.size),
+                min_binding_size: None,
             },
             resource: self.as_entire_binding(),
         }
@@ -64,7 +64,7 @@ impl crate::Buffer {
             ty: wgpu::BindingType::Buffer {
                 ty: wgpu::BufferBindingType::Storage { read_only: true },
                 has_dynamic_offset: false,
-                min_binding_size: core::num::NonZeroU64::new(self.size),
+                min_binding_size: None,
             },
             resource: self.as_entire_binding(),
         }
@@ -112,7 +112,7 @@ macro_rules! gen_binding_vis_fn {
     };
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Binding<'a> {
     pub device: &'a wgpu::Device,
     pub visibility: wgpu::ShaderStages,
