@@ -220,6 +220,15 @@ impl<'a> DerefMut for RenderPass<'a> {
     }
 }
 
+impl<'a> From<wgpu::RenderPass<'a>> for RenderPass<'a> {
+    fn from(render_pass: wgpu::RenderPass<'a>) -> Self {
+        Self {
+            inner: render_pass,
+            pipeline_statistics: false,
+        }
+    }
+}
+
 impl Drop for RenderPass<'_> {
     fn drop(&mut self) {
         if self.pipeline_statistics {
