@@ -1,13 +1,13 @@
 #![cfg(test)]
 
-use agpu::{VertexLayout, VertexLayoutInstance};
+use agpu::{u8n, VertexLayout, VertexLayoutInstance};
 
 #[derive(VertexLayout)]
 struct MixedTypes {
     _position: [f32; 3],
-    _color: [u8; 4],
+    _color: [u8n; 4],
     _normal: [f32; 4],
-    _some_raw_data: (u16, u16, u16, u16),
+    _some_raw_data: [u16; 4],
 }
 
 #[test]
