@@ -93,7 +93,9 @@ fn generate_matrix(aspect_ratio: f32) -> nalgebra::Matrix4<f32> {
 
 fn main() -> Result<(), BoxError> {
     // Init gpu
-    let program = agpu::GpuProgram::builder("Cube example").build()?;
+    let program = agpu::GpuProgram::builder("Cube example")
+        .with_gpu_features(Features::POLYGON_MODE_LINE)
+        .build()?;
     let gpu = program.gpu.clone();
 
     let (vertex_data, index_data) = create_vertices();
@@ -130,12 +132,17 @@ fn main() -> Result<(), BoxError> {
         texture.bind_texture().sample_uint().in_fragment(),
     ]);
 
-    let pipeline = gpu
+    let vertex_layouts = &[Vertex::vertex_buffer_layout::<0>()];
+    let bind_groups = &[&bind_group.layout];
+    let pipeline_builder = gpu
         .new_pipeline("Cube pipeline")
         .with_vertex_fragment(include_bytes!("shader/cube.wgsl"))
-        .with_vertex_layouts(&[Vertex::vertex_buffer_layout::<0>()])
-        .with_bind_groups(&[&bind_group.layout])
-        .cull_back()
+        .with_vertex_layouts(vertex_layouts)
+        .with_bind_groups(bind_groups);
+    let pipeline = pipeline_builder.create();
+    let wire_pipeline = pipeline_builder
+        .with_fragment_entry("fs_wire")
+        .wireframe()
         .create();
 
     program.on_resize(move |_, width, height| {
@@ -149,10 +156,13 @@ fn main() -> Result<(), BoxError> {
             .clear_color(BABY_BLUE)
             .begin();
         rpass
-            .set_pipeline(&pipeline)
             .set_vertex_buffer(0, vertex_buffer.slice(..))
             .set_index_buffer(index_buffer.slice(..))
             .set_bind_group(0, &bind_group.inner, &[])
+            .set_pipeline(&pipeline)
+            .draw_one_indexed(index_data.len() as _);
+        rpass
+            .set_pipeline(&wire_pipeline)
             .draw_one_indexed(index_data.len() as _);
     });
 }
