@@ -142,14 +142,19 @@ pub enum Event<'a, T: 'static> {
 
 #[derive(Default)]
 pub struct GpuProgramBuilder<'a> {
-    window: winit::window::WindowBuilder,
-    gpu: GpuBuilder<'a>,
+    pub window: winit::window::WindowBuilder,
+    pub gpu: GpuBuilder<'a>,
 }
 
 impl<'a> GpuProgramBuilder<'a> {
     #[must_use]
     pub fn new() -> Self {
         Self::default()
+    }
+
+    pub fn with_gpu_features(mut self, features: wgpu::Features) -> Self {
+        self.gpu = self.gpu.with_features(features);
+        self
     }
 
     // We simply reimplement the winit window builder's methods
