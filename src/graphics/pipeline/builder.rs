@@ -188,6 +188,16 @@ impl<'a> PipelineBuilder<'a> {
         self
     }
 
+    pub fn with_fragment_entry(mut self, entry: &'a str) -> Self {
+        self.fragment_entry = entry;
+        self
+    }
+
+    pub fn with_vertex_entry(mut self, entry: &'a str) -> Self {
+        self.vertex_entry = entry;
+        self
+    }
+
     /// Convenience method for with_vertex() + with_fragment()
     /// This also sets the entry points to vs_main and fs_main respectively.
     pub fn with_vertex_fragment(mut self, bytes: &'static [u8]) -> Self {
@@ -233,6 +243,12 @@ impl<'a> PipelineBuilder<'a> {
     /// Back is CW.
     pub fn cull_back(mut self) -> Self {
         self.desc.primitive.cull_mode = Some(wgpu::Face::Back);
+        self
+    }
+
+    /// Draws lines instead of filling in triangles.
+    pub fn wireframe(mut self) -> Self {
+        self.desc.primitive.polygon_mode = wgpu::PolygonMode::Line;
         self
     }
 
