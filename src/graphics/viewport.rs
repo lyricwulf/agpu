@@ -11,7 +11,7 @@ use std::{cell::RefCell, ops::Deref};
 
 use crate::{GpuError, GpuHandle};
 
-pub trait RenderTarget {
+pub trait BeginRenderFrame {
     fn begin_frame(&self) -> Result<Frame, GpuError>;
 }
 

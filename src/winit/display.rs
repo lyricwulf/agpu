@@ -16,21 +16,8 @@ impl WindowView {
     }
 }
 
-impl crate::RenderTarget for WindowView {
+impl crate::BeginRenderFrame for WindowView {
     fn begin_frame(&self) -> Result<Frame<'_>, GpuError> {
-        match Frame::new(&self.viewport.gpu, &self.viewport.surface) {
-            Ok(frame) => Ok(frame),
-            Err(GpuError::SurfaceError(wgpu::SurfaceError::Outdated)) => {
-                // Attempt to resize the window if the surface is outdated.
-                // If the window is the same size, then a simple resize will
-                // not solve this error.
-                if self.resize_using_window() {
-                    self.begin_frame()
-                } else {
-                    Err(GpuError::SurfaceError(wgpu::SurfaceError::Outdated))
-                }
-            }
-            Err(e) => Err(e),
-        }
+        self.viewport.begin_frame()
     }
 }
