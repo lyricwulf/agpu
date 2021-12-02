@@ -1,11 +1,12 @@
 mod builder;
 pub use builder::GpuBuilder;
 
-use raw_window_handle::HasRawWindowHandle;
 pub use wgpu::Backends;
+pub use wgpu::Features;
 
 use crate::{BufferBuilder, GpuError, Profiler, ViewportBuilder};
 use core::mem::ManuallyDrop;
+use raw_window_handle::HasRawWindowHandle;
 use std::{
     ops::{Deref, DerefMut},
     rc::Rc,
