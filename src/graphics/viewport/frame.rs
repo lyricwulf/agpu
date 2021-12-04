@@ -9,7 +9,11 @@ use std::mem::ManuallyDrop;
 pub struct Frame<'a> {
     /// The gpu handle is ref'd because of the short lifetime of Frame
     pub(crate) gpu: &'a GpuHandle,
+    /// The surface texture provided by the surface
+    /// ManuallyDrop because we call `.present()` on it to present to screen
     surface_texture: ManuallyDrop<wgpu::SurfaceTexture>,
+    /// The Optional depth texture
+    depth_texture: Option<wgpu::TextureView>,
     pub view: wgpu::TextureView,
     pub encoder: ManuallyDrop<wgpu::CommandEncoder>,
 }
@@ -23,7 +27,16 @@ impl Frame<'_> {
                 label: Some(label),
                 color_attachments: &[],
                 // TODO: This will map to the surface depth
-                depth_stencil_attachment: None,
+                depth_stencil_attachment: self.depth_texture.as_ref().map(|view| {
+                    wgpu::RenderPassDepthStencilAttachment {
+                        view,
+                        depth_ops: Some(wgpu::Operations {
+                            load: wgpu::LoadOp::Load,
+                            store: true,
+                        }),
+                        stencil_ops: None,
+                    }
+                }),
             },
             attachments: vec![wgpu::RenderPassColorAttachment {
                 view: &self.view,
@@ -61,6 +74,7 @@ impl<'a> Frame<'a> {
         Ok(Frame {
             gpu,
             surface_texture: ManuallyDrop::new(frame),
+            depth_texture: None,
             view: frame_view,
             encoder: ManuallyDrop::new(encoder),
         })
