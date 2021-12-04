@@ -1,10 +1,87 @@
 pub use winit;
+use winit::event_loop::ControlFlow;
 
-use std::cell::{Cell, RefCell};
+use std::{
+    cell::{Cell, RefCell},
+    time::{Duration, Instant},
+};
 
 use crate::{Frame, GpuBuilder, GpuError, GpuHandle, Viewport};
 
 mod display;
+
+/// A stateful opaque type that handles framerate and timing for continuous
+/// rendering.
+pub struct ProgramTime {
+    pub target_framerate: f32,
+    pub last_update_time: Cell<Option<Instant>>,
+    pub last_frame_time: Cell<Duration>,
+    pub delta_time: Cell<Duration>,
+    // Amount to shorten the frame time by, to make up for redraw dispatch time
+    frame_time_adjustment: Cell<Duration>,
+    // The last time the frame was drawn. Used for calculating the adjusted frame time
+    last_draw_time: Cell<Option<Instant>>,
+}
+impl ProgramTime {
+    pub fn new(framerate: f32) -> Self {
+        Self {
+            target_framerate: framerate,
+            // Init last update time to zero'd for performance
+            last_update_time: Cell::new(None),
+            last_frame_time: Cell::new(Duration::ZERO),
+            delta_time: Cell::new(Duration::ZERO),
+            frame_time_adjustment: Cell::new(Duration::ZERO),
+            last_draw_time: Cell::new(None),
+        }
+    }
+
+    pub fn should_draw(&self) -> bool {
+        // Note that this is the only time where we get now() to minmize the runtime cost
+        let now = Instant::now();
+
+        // Calculate the target frame time based on the framerate
+        let framerate_time = Duration::from_secs_f32(1.0 / self.target_framerate);
+
+        // Adjust the target frame time based on the last delta time
+        let target_frametime = framerate_time.saturating_sub(self.frame_time_adjustment.get());
+
+        // * Use let-else (RFC 3137) when available
+        let last_update_time = if let Some(last_update_time) = self.last_update_time.get() {
+            last_update_time
+        } else {
+            // Handle first update without time compensation
+            self.last_update_time.set(Some(now));
+            return true;
+        };
+
+        // Calculate the time since the last frame
+        let time_since_last_frame = now - last_update_time;
+        // Calculate adjusted wait time
+        if let Some(last_draw_time) = self.last_draw_time.take() {
+            let _last_draw_duration = now - last_draw_time;
+            let new_adjustment = self.delta_time.get().saturating_sub(framerate_time);
+            self.frame_time_adjustment.set(new_adjustment);
+        }
+
+        // Render a new frame if it has been long enough
+        if time_since_last_frame >= target_frametime {
+            self.last_update_time.set(Some(now));
+            self.last_draw_time.set(Some(now));
+            self.delta_time.set(time_since_last_frame);
+
+            return true;
+        }
+        false
+    }
+
+    /// Clear the accumulated frame timer
+    pub fn clear_counter(&self, now: Instant) {
+        self.delta_time
+            .set(now - self.last_update_time.get().unwrap_or(now));
+        self.last_update_time.set(Some(now));
+        self.last_draw_time.set(Some(now));
+    }
+}
 
 /// A window, gpu, and viewport all in one
 // TODO: Add custom user events via EventLoop<T>
@@ -18,6 +95,7 @@ pub struct GpuProgram {
     pub gpu: GpuHandle,
     pub viewport: Viewport,
     pub on_resize: RefCell<Option<ResizeFn>>,
+    pub time: Option<ProgramTime>,
 }
 
 type ResizeFn = Box<dyn Fn(&GpuProgram, u32, u32)>;
@@ -65,7 +143,7 @@ impl GpuProgram {
                     winit::event::Event::WindowEvent {
                         event: winit::event::WindowEvent::CloseRequested,
                         ..
-                    } => *control_flow = winit::event_loop::ControlFlow::Exit,
+                    } => *control_flow = ControlFlow::Exit,
 
                     // Resize the viewport when the window is resized
                     winit::event::Event::WindowEvent {
@@ -80,10 +158,13 @@ impl GpuProgram {
                         }
                     }
 
-                    // The state has been changed. We assume the display should change,
-                    // so we request a redraw
-                    winit::event::Event::MainEventsCleared => {
-                        self.viewport.request_redraw();
+                    winit::event::Event::RedrawEventsCleared => {
+                        // Clamp to some max framerate if the target framerate is set
+                        if let Some(program_time) = &self.time {
+                            if program_time.should_draw() {
+                                self.viewport.request_redraw()
+                            }
+                        }
                     }
 
                     // Handle redrawing
@@ -103,7 +184,13 @@ impl GpuProgram {
 
                         // Then we create a new Frame and pass it to the event handler
                         let frame = match self.viewport.begin_frame() {
-                            Ok(frame) => frame,
+                            Ok(mut frame) => {
+                                frame.delta_time = self
+                                    .time
+                                    .as_ref()
+                                    .map(|time| time.delta_time.get().as_secs_f32());
+                                frame
+                            }
                             Err(e) => {
                                 // Rudimentary error handling. Just logs and continues
                                 tracing::warn!("Requested frame but {}. Redraw is suppressed", e);
@@ -128,6 +215,26 @@ impl GpuProgram {
         let mut on_resize = self.on_resize.borrow_mut();
         *on_resize = Some(Box::new(handler));
     }
+
+    pub fn set_framerate(&mut self, target_framerate: f32) {
+        self.time = Some(ProgramTime::new(target_framerate));
+    }
+
+    pub fn current_monitor_max_framerate(&self) -> f32 {
+        const DEFAULT_FRAMERATE: f32 = 60.0;
+
+        if let Some(monitor) = self.viewport.window.current_monitor() {
+            // find the max framerate out of all possible video modes
+            if let Some(video_mode) = monitor
+                .video_modes()
+                .max_by_key(winit::monitor::VideoMode::refresh_rate)
+            {
+                return video_mode.refresh_rate() as f32;
+            }
+        }
+        // if monitor is not found, or if list of video modes is empty, go back to default
+        DEFAULT_FRAMERATE
+    }
 }
 
 pub enum Event<'a, T: 'static> {
@@ -144,6 +251,7 @@ pub enum Event<'a, T: 'static> {
 pub struct GpuProgramBuilder<'a> {
     pub window: winit::window::WindowBuilder,
     pub gpu: GpuBuilder<'a>,
+    pub framerate: Option<f32>,
 }
 
 impl<'a> GpuProgramBuilder<'a> {
@@ -154,6 +262,12 @@ impl<'a> GpuProgramBuilder<'a> {
 
     pub fn with_gpu_features(mut self, features: wgpu::Features) -> Self {
         self.gpu = self.gpu.with_features(features);
+        self
+    }
+
+    /// Sets the window to continuously draw at the given framerate.
+    pub fn with_framerate(mut self, framerate: f32) -> Self {
+        self.framerate = Some(framerate);
         self
     }
 
@@ -309,11 +423,15 @@ impl<'a> GpuProgramBuilder<'a> {
         let gpu = gpu.with_profiler().build(&window)?;
         let viewport = gpu.new_viewport(window).create();
 
+        // Create time module if there is a target framerate
+        let time = self.framerate.map(ProgramTime::new);
+
         Ok(GpuProgram {
             event_loop: Cell::new(Some(event_loop)),
             viewport,
             gpu,
             on_resize: RefCell::new(None),
+            time,
         })
     }
 }

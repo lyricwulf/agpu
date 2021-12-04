@@ -16,6 +16,7 @@ pub struct Frame<'a> {
     depth_texture: Option<wgpu::TextureView>,
     pub view: wgpu::TextureView,
     pub encoder: ManuallyDrop<wgpu::CommandEncoder>,
+    pub delta_time: Option<f32>,
 }
 
 impl Frame<'_> {
@@ -77,6 +78,7 @@ impl<'a> Frame<'a> {
             depth_texture: None,
             view: frame_view,
             encoder: ManuallyDrop::new(encoder),
+            delta_time: None,
         })
     }
 }
