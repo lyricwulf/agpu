@@ -151,7 +151,6 @@ impl<'a> PipelineBuilder<'a> {
                 write_mask: wgpu::ColorWrites::ALL,
             }],
         }
-        .cull_back()
     }
     /// Set the vertex buffer layouts
     pub fn with_vertex_layouts(mut self, layouts: &'a [wgpu::VertexBufferLayout<'a>]) -> Self {
