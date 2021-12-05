@@ -281,24 +281,24 @@ impl<'a> PipelineBuilder<'a> {
                 push_constant_ranges: self.desc.push_constant_ranges,
             });
 
+        let pipeline_desc = wgpu::RenderPipelineDescriptor {
+            layout: Some(&layout),
+            label: self.label,
+            vertex: wgpu::VertexState {
+                module: &vertex_module,
+                entry_point: self.vertex_entry,
+                buffers: self.desc.vertex_layouts,
+            },
+            primitive: self.desc.primitive,
+            depth_stencil: self.desc.depth_stencil.clone(),
+            multisample: self.desc.multisample,
+            fragment,
+        };
+
         // Create the pipeline
-        let pipeline = self
-            .gpu
-            .device
-            .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                layout: Some(&layout),
-                label: self.label,
-                vertex: wgpu::VertexState {
-                    module: &vertex_module,
-                    entry_point: self.vertex_entry,
-                    buffers: self.desc.vertex_layouts,
-                },
-                primitive: self.desc.primitive,
-                depth_stencil: self.desc.depth_stencil.clone(),
-                multisample: self.desc.multisample,
-                fragment,
-            });
+        let pipeline = self.gpu.device.create_render_pipeline(&pipeline_desc);
         RenderPipeline {
+            depth_stencil: self.desc.depth_stencil.clone(),
             gpu: self.gpu.clone(),
             inner: pipeline,
         }
