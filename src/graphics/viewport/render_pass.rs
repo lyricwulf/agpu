@@ -151,21 +151,8 @@ impl<'a, 'b> RenderPassBuilder<'a, 'b> {
         }
     }
 
-    pub fn with_depth(mut self, view: &'a wgpu::TextureView) -> Self {
-        // Record old stencil ops
-        let stencil_ops = self
-            .desc
-            .depth_stencil_attachment
-            .map(|ds| ds.stencil_ops)
-            .flatten();
-        self.desc.depth_stencil_attachment = Some(wgpu::RenderPassDepthStencilAttachment {
-            view,
-            depth_ops: Some(wgpu::Operations {
-                load: wgpu::LoadOp::Load,
-                store: true,
-            }),
-            stencil_ops,
-        });
+    pub fn with_depth(mut self, depth: wgpu::RenderPassDepthStencilAttachment<'a>) -> Self {
+        self.desc.depth_stencil_attachment = Some(depth);
         self
     }
 
