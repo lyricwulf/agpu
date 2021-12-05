@@ -1,4 +1,4 @@
-use crate::{GpuError, GpuHandle, RenderPassBuilder};
+use crate::{CommandEncoder, GpuError, GpuHandle, RenderPassBuilder};
 use std::mem::ManuallyDrop;
 
 /// Convenience wrapper for a frame buffer you render to.
@@ -13,9 +13,9 @@ pub struct Frame<'a> {
     /// ManuallyDrop because we call `.present()` on it to present to screen
     surface_texture: ManuallyDrop<wgpu::SurfaceTexture>,
     /// The Optional depth texture
-    depth_texture: Option<wgpu::TextureView>,
+    pub depth_texture: Option<wgpu::TextureView>,
     pub view: wgpu::TextureView,
-    pub encoder: ManuallyDrop<wgpu::CommandEncoder>,
+    pub encoder: ManuallyDrop<CommandEncoder>,
     pub delta_time: Option<f32>,
 }
 
@@ -23,32 +23,56 @@ impl Frame<'_> {
     pub fn render_pass<'f>(&'f mut self, label: &'f str) -> RenderPassBuilder {
         RenderPassBuilder {
             encoder: &mut self.encoder,
-            gpu: self.gpu,
             desc: wgpu::RenderPassDescriptor {
                 label: Some(label),
                 color_attachments: &[],
                 // TODO: This will map to the surface depth
-                depth_stencil_attachment: self.depth_texture.as_ref().map(|view| {
-                    wgpu::RenderPassDepthStencilAttachment {
-                        view,
-                        depth_ops: Some(wgpu::Operations {
-                            load: wgpu::LoadOp::Load,
-                            store: true,
-                        }),
-                        stencil_ops: None,
-                    }
-                }),
+                depth_stencil_attachment: None,
             },
-            attachments: vec![wgpu::RenderPassColorAttachment {
+            init_color_attachments: Some(vec![wgpu::RenderPassColorAttachment {
                 view: &self.view,
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Load,
                     store: true,
                 },
-            }],
+            }]),
             init_pipeline: None,
         }
+    }
+
+    pub fn render_pass_cleared<'f>(
+        &'f mut self,
+        label: &'f str,
+        clear_color: u32,
+    ) -> RenderPassBuilder {
+        let [r, g, b, a] = clear_color.to_be_bytes();
+        RenderPassBuilder {
+            encoder: &mut self.encoder,
+            desc: wgpu::RenderPassDescriptor {
+                label: Some(label),
+                color_attachments: &[],
+                depth_stencil_attachment: None,
+            },
+            init_color_attachments: Some(vec![wgpu::RenderPassColorAttachment {
+                view: &self.view,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(wgpu::Color {
+                        r: r as f64 / 255.0,
+                        g: g as f64 / 255.0,
+                        b: b as f64 / 255.0,
+                        a: a as f64 / 255.0,
+                    }),
+                    store: true,
+                },
+            }]),
+            init_pipeline: None,
+        }
+    }
+
+    pub fn create_encoder(&self, label: &str) -> CommandEncoder {
+        self.gpu.create_command_encoder(label)
     }
 }
 
@@ -64,11 +88,7 @@ impl<'a> Frame<'a> {
             label: Some("Viewport frame view"),
             ..Default::default()
         });
-        let mut encoder = gpu
-            .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                label: Some("Viewport render encoder"),
-            });
+        let mut encoder = gpu.create_command_encoder("Viewport render encoder");
 
         gpu.begin_profiler_section("Frame start", &mut encoder);
 
@@ -89,11 +109,10 @@ impl Drop for Frame<'_> {
         // Take ownership of the encoder field so that it can be consumed by submit()
         // and the frame field so it can be consumed by present()
         // This is safe because we are dropping the struct right after this
-        let encoder = unsafe { ManuallyDrop::take(&mut self.encoder) };
         let frame = unsafe { ManuallyDrop::take(&mut self.surface_texture) };
 
         // First submit the encoder to the queue
-        self.gpu.queue.submit(Some(encoder.finish()));
+        unsafe { ManuallyDrop::drop(&mut self.encoder) };
         // Then present the frame to the screen
         frame.present();
         self.gpu.profiler.clear();

@@ -1,42 +1,94 @@
 use std::ops::{Deref, DerefMut};
 
-use wgpu::LoadOp;
-
-use crate::GpuHandle;
+use crate::{CommandEncoder, Frame, GpuHandle, RenderPipeline, Texture};
 
 pub struct RenderPassBuilder<'a, 'b> {
     /// Encoder is used to create the render pass on build()
-    pub(crate) encoder: &'a mut wgpu::CommandEncoder,
-    /// Reference to the profiler we will submit to
-    pub(crate) gpu: &'a crate::GpuHandle,
+    pub(crate) encoder: &'a mut CommandEncoder,
+    // /// Reference to the profiler we will submit to
+    // pub(crate) gpu: &'a crate::GpuHandle,
     pub(crate) desc: wgpu::RenderPassDescriptor<'a, 'b>,
-    pub(crate) attachments: Vec<wgpu::RenderPassColorAttachment<'a>>,
+    pub(crate) init_color_attachments: Option<Vec<wgpu::RenderPassColorAttachment<'a>>>,
     /// An optional pipeline that the render pass will start with
     /// This is ergonomic for single-pipeline render passes,
     /// but it is fairly useless otherwise
     pub(crate) init_pipeline: Option<&'a wgpu::RenderPipeline>,
 }
 
-pub trait RenderAttachmentExt {
-    fn clear(&mut self, value: u32) -> &Self;
-    fn readonly(&mut self) -> &Self;
+pub trait RenderAttachmentBuild {
+    fn clear_impl(self, r: f64, g: f64, b: f64, a: f64) -> Self;
+    fn clear(self) -> Self;
+    fn clear_black(self) -> Self;
+    fn clear_white(self) -> Self;
+    fn clear_color(self, color: u32) -> Self;
+    fn readonly(self) -> Self;
 }
 
-impl<'a> RenderAttachmentExt for wgpu::RenderPassColorAttachment<'a> {
-    fn clear(&mut self, value: u32) -> &Self {
-        let [r, g, b, a] = value.to_be_bytes();
-        self.ops.load = LoadOp::Clear(wgpu::Color {
-            r: r as f64 / 255.0,
-            g: g as f64 / 255.0,
-            b: b as f64 / 255.0,
-            a: a as f64 / 255.0,
-        });
+impl<'a> RenderAttachmentBuild for wgpu::RenderPassColorAttachment<'a> {
+    fn clear_impl(mut self, r: f64, g: f64, b: f64, a: f64) -> Self {
+        self.ops = wgpu::Operations {
+            load: wgpu::LoadOp::Clear(wgpu::Color { r, g, b, a }),
+            ..self.ops
+        };
         self
     }
+    fn clear(self) -> Self {
+        self.clear_impl(0.0, 0.0, 0.0, 0.0)
+    }
+    fn clear_black(self) -> Self {
+        self.clear_impl(0.0, 0.0, 0.0, 1.0)
+    }
+    fn clear_white(self) -> Self {
+        self.clear_impl(1.0, 1.0, 1.0, 1.0)
+    }
+    fn clear_color(self, color: u32) -> Self {
+        let [r, g, b, a] = color.to_be_bytes();
+        self.clear_impl(
+            r as f64 / 255.0,
+            g as f64 / 255.0,
+            b as f64 / 255.0,
+            a as f64 / 255.0,
+        )
+    }
 
-    fn readonly(&mut self) -> &Self {
-        self.ops.store = false;
+    fn readonly(mut self) -> Self {
+        self.ops = wgpu::Operations {
+            store: false,
+            ..self.ops
+        };
         self
+    }
+}
+
+pub trait DepthAttachmentBuild {
+    fn clear_depth_val(self, val: f32) -> Self;
+    fn clear_stencil_val(self, val: u32) -> Self;
+    fn clear_depth(self) -> Self;
+    fn clear_stencil(self) -> Self;
+    fn clear(self) -> Self;
+}
+
+impl<'a> DepthAttachmentBuild for wgpu::RenderPassDepthStencilAttachment<'a> {
+    fn clear_depth_val(self, val: f32) -> Self {
+        if let Some(mut ops) = self.depth_ops {
+            ops.load = wgpu::LoadOp::Clear(val);
+        }
+        self
+    }
+    fn clear_stencil_val(self, val: u32) -> Self {
+        if let Some(mut ops) = self.stencil_ops {
+            ops.load = wgpu::LoadOp::Clear(val);
+        }
+        self
+    }
+    fn clear_depth(self) -> Self {
+        self.clear_depth_val(0.0)
+    }
+    fn clear_stencil(self) -> Self {
+        self.clear_stencil_val(0)
+    }
+    fn clear(self) -> Self {
+        self.clear_depth().clear_stencil()
     }
 }
 
@@ -85,48 +137,76 @@ impl<'a> RenderAttachmentExt for wgpu::RenderPassColorAttachment<'a> {
 //     fn color_attachment(&self, attachment: &wgpu::Texture) -> &RenderAttachmentBuilder;
 // }
 
-impl<'a> RenderPassBuilder<'a, '_> {
-    pub fn new(encoder: &'a mut wgpu::CommandEncoder, gpu: &'a mut GpuHandle) -> Self {
+impl<'a, 'b> RenderPassBuilder<'a, 'b> {
+    pub fn new(encoder: &'a mut CommandEncoder, _gpu: &'a mut GpuHandle) -> Self {
         Self {
             encoder,
-            gpu,
             desc: wgpu::RenderPassDescriptor {
                 label: Some("Render pass"),
                 color_attachments: &[],
                 depth_stencil_attachment: None,
             },
-            attachments: vec![],
             init_pipeline: None,
+            init_color_attachments: None,
         }
     }
 
-    #[inline]
-    pub fn with_pipeline(mut self, pipeline: &'a wgpu::RenderPipeline) -> Self {
-        self.init_pipeline = Some(pipeline);
+    pub fn with_depth(mut self, view: &'a wgpu::TextureView) -> Self {
+        // Record old stencil ops
+        let stencil_ops = self
+            .desc
+            .depth_stencil_attachment
+            .map(|ds| ds.stencil_ops)
+            .flatten();
+        self.desc.depth_stencil_attachment = Some(wgpu::RenderPassDepthStencilAttachment {
+            view,
+            depth_ops: Some(wgpu::Operations {
+                load: wgpu::LoadOp::Load,
+                store: true,
+            }),
+            stencil_ops,
+        });
         self
     }
 
-    // TODO: This does not scale for multiple render attachments
-    pub fn clear_color(mut self, value: u32) -> Self {
-        self.attachments[0].clear(value);
+    #[inline]
+    pub fn with_pipeline(mut self, pipeline: &'a RenderPipeline) -> Self {
+        self.init_pipeline = Some(pipeline);
+        if pipeline.depth_stencil.is_none() {
+            self.desc.depth_stencil_attachment = None;
+        }
         self
     }
 
     pub fn begin(self) -> RenderPass<'a> {
-        if self.gpu.profiler.timestamp.is_some() {
-            self.gpu
-                .begin_profiler_section(self.desc.label.unwrap_or("Render pass"), self.encoder);
+        let desc = self.desc.clone();
+        self.begin_impl(&desc)
+    }
+
+    fn begin_impl(self, desc: &'b wgpu::RenderPassDescriptor<'a, 'b>) -> RenderPass<'a> {
+        let gpu = self.encoder.gpu.clone();
+        if self.encoder.gpu.profiler.timestamp.is_some() {
+            gpu.begin_profiler_section(self.desc.label.unwrap_or("Render pass"), self.encoder);
         }
 
-        let mut inner = self.encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-            color_attachments: &self.attachments,
-            ..self.desc
-        });
+        // Create the inner render pass
+        // Use the init attachment if it exists
+        let mut inner = if let Some(init_attachment) = self.init_color_attachments {
+            let color_attachments = &init_attachment;
+            let desc = wgpu::RenderPassDescriptor {
+                color_attachments,
+                ..desc.clone()
+            };
+            dbg!(&desc);
+            self.encoder.begin_render_pass(&desc)
+        } else {
+            self.encoder.begin_render_pass(desc)
+        };
 
-        let pipeline_statistics = self.gpu.profiler.stats.is_some();
+        let pipeline_statistics = gpu.profiler.stats.is_some();
 
         if pipeline_statistics {
-            self.gpu.begin_pipeline_statistics_query(&mut inner);
+            gpu.begin_pipeline_statistics_query(&mut inner);
         }
 
         if let Some(pipeline) = self.init_pipeline {
@@ -233,6 +313,126 @@ impl Drop for RenderPass<'_> {
     fn drop(&mut self) {
         if self.pipeline_statistics {
             self.end_pipeline_statistics_query();
+        }
+    }
+}
+
+impl crate::CommandEncoder {
+    pub fn render_pass<'a, 'b>(
+        &'a mut self,
+        label: &'a str,
+        targets: &'b [wgpu::RenderPassColorAttachment<'a>],
+    ) -> RenderPassBuilder<'a, 'b> {
+        RenderPassBuilder {
+            encoder: self,
+            desc: wgpu::RenderPassDescriptor {
+                color_attachments: targets,
+                label: Some(label),
+                depth_stencil_attachment: None,
+            },
+            init_pipeline: None,
+            init_color_attachments: None,
+        }
+    }
+}
+
+impl Texture {
+    pub fn attach_render(&self) -> RenderAttachment<'_> {
+        wgpu::RenderPassColorAttachment {
+            view: &self.view,
+            resolve_target: None,
+            ops: wgpu::Operations {
+                load: wgpu::LoadOp::Load,
+                store: true,
+            },
+        }
+    }
+
+    pub fn attach_depth(&self) -> DepthAttachment<'_> {
+        wgpu::RenderPassDepthStencilAttachment {
+            view: &self.view,
+            depth_ops: Some(wgpu::Operations {
+                load: wgpu::LoadOp::Load,
+                store: true,
+            }),
+            stencil_ops: None,
+        }
+    }
+
+    pub fn attach_stencil(&self) -> DepthAttachment<'_> {
+        wgpu::RenderPassDepthStencilAttachment {
+            view: &self.view,
+            depth_ops: None,
+            stencil_ops: Some(wgpu::Operations {
+                load: wgpu::LoadOp::Load,
+                store: true,
+            }),
+        }
+    }
+
+    pub fn attach_depth_stencil(&self) -> DepthAttachment<'_> {
+        wgpu::RenderPassDepthStencilAttachment {
+            view: &self.view,
+            depth_ops: Some(wgpu::Operations {
+                load: wgpu::LoadOp::Load,
+                store: true,
+            }),
+            stencil_ops: Some(wgpu::Operations {
+                load: wgpu::LoadOp::Load,
+                store: true,
+            }),
+        }
+    }
+}
+
+pub type RenderAttachment<'a> = wgpu::RenderPassColorAttachment<'a>;
+pub type DepthAttachment<'a> = wgpu::RenderPassDepthStencilAttachment<'a>;
+
+impl Frame<'_> {
+    pub const fn attach_render(&self) -> RenderAttachment<'_> {
+        wgpu::RenderPassColorAttachment {
+            view: &self.view,
+            resolve_target: None,
+            ops: wgpu::Operations {
+                load: wgpu::LoadOp::Load,
+                store: true,
+            },
+        }
+    }
+
+    pub const fn attach_depth(&self) -> DepthAttachment<'_> {
+        wgpu::RenderPassDepthStencilAttachment {
+            view: &self.view,
+            depth_ops: Some(wgpu::Operations {
+                load: wgpu::LoadOp::Load,
+                store: true,
+            }),
+            stencil_ops: None,
+        }
+    }
+
+    pub const fn attach_stencil(&self) -> DepthAttachment<'_> {
+        wgpu::RenderPassDepthStencilAttachment {
+            view: &self.view,
+            depth_ops: None,
+            stencil_ops: Some(wgpu::Operations {
+                load: wgpu::LoadOp::Load,
+                store: true,
+            }),
+        }
+    }
+
+    pub const fn attach_depth_stencil(&self) -> DepthAttachment<'_> {
+        wgpu::RenderPassDepthStencilAttachment {
+            view: &self.view,
+            depth_ops: Some(wgpu::Operations {
+                load: wgpu::LoadOp::Load,
+                store: true,
+            }),
+            stencil_ops: Some(wgpu::Operations {
+                load: wgpu::LoadOp::Load,
+                store: true,
+            }),
         }
     }
 }
