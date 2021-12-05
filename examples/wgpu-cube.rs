@@ -138,7 +138,8 @@ fn main() -> Result<(), BoxError> {
         .new_pipeline("Cube pipeline")
         .with_vertex_fragment(include_bytes!("shader/cube.wgsl"))
         .with_vertex_layouts(vertex_layouts)
-        .with_bind_groups(bind_groups);
+        .with_bind_groups(bind_groups)
+        .cull_back();
     let pipeline = pipeline_builder.create();
     let wire_pipeline = pipeline_builder
         .with_fragment_entry("fs_wire")
@@ -150,10 +151,10 @@ fn main() -> Result<(), BoxError> {
         uniform_buf.write(mx.as_ref());
     });
 
-    program.run_draw(move |mut frame| {
-        let mut rpass = frame
-            .render_pass("Main pass")
-            .clear_color(BABY_BLUE)
+    program.run_draw(move |frame| {
+        let mut encoder = frame.create_encoder("Cube encoder");
+        let mut rpass = encoder
+            .render_pass("Main pass", &[frame.attach_render().clear_color(BABY_BLUE)])
             .begin();
         rpass
             .set_vertex_buffer(0, vertex_buffer.slice(..))

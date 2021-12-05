@@ -10,11 +10,9 @@ fn main() -> Result<(), agpu::BoxError> {
         .create();
 
     program.run_draw(move |mut frame| {
-        frame
-            .render_pass("Example render pass")
-            .with_pipeline(&example_pipeline)
-            .clear_color(GREEN)
-            .begin()
-            .draw_triangle();
+        // Create the render pass
+        let mut render_pass = frame.render_pass_cleared("Triangle pass", GREEN).begin();
+        // Set the pipeline and render
+        render_pass.set_pipeline(&example_pipeline).draw_triangle();
     })
 }
