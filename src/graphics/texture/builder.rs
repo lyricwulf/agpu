@@ -73,6 +73,36 @@ impl TextureBuilder<'_> {
         }
     }
 
+    /// Creates the texture with a given size, and filled with 0.
+    pub fn create_empty(mut self, size: &[u32]) -> crate::Texture {
+        let (width, height, depth_or_array_layers) = {
+            let mut size = size.iter();
+            (
+                *size.next().unwrap_or(&1),
+                *size.next().unwrap_or(&1),
+                *size.next().unwrap_or(&1),
+            )
+        };
+
+        self.texture.usage |= wgpu::TextureUsages::COPY_DST;
+        self.texture.size = wgpu::Extent3d {
+            width,
+            height,
+            depth_or_array_layers,
+        };
+        self.texture.dimension = size_dim(&self.texture.size);
+
+        let texture = self.gpu.device.create_texture(&self.texture);
+        let view = texture.create_view(&self.view);
+
+        crate::Texture {
+            gpu: self.gpu,
+            inner: texture,
+            view,
+            format: self.texture.format,
+        }
+    }
+
     /// Assumed that the input data is uniformly sized
     #[deprecated(note = "Use `create` instead")]
     pub fn create2d<T>(mut self, data: &[&[T]]) -> crate::Texture
