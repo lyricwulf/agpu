@@ -29,8 +29,7 @@ pub struct Viewport {
     pub sc_desc: RefCell<wgpu::SurfaceConfiguration>,
     /// Uses RefCell for interior mutability.
     // pub swap_chain: RefCell<wgpu::SwapChain>,
-    pub depth_texture: RefCell<wgpu::Texture>,
-    pub depth_view: RefCell<wgpu::TextureView>,
+    pub depth_texture: RefCell<crate::Texture>,
     /// Data buffer for viewport properties.
     /// Binding 0: viewport size f32x2
     pub data_buffer: wgpu::Buffer,
@@ -58,29 +57,11 @@ impl<'a> Viewport {
         };
         surface.configure(&gpu.device, &sc_desc);
 
-        let depth_texture = gpu.device.create_texture(&wgpu::TextureDescriptor {
-            label: Some("Depth Texture"),
-            size: wgpu::Extent3d {
-                width,
-                height,
-                depth_or_array_layers: 1,
-            },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Depth32Float,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-        });
-        let depth_view = depth_texture.create_view(&wgpu::TextureViewDescriptor {
-            label: Some("Depth Texture View"),
-            format: Some(wgpu::TextureFormat::Depth32Float),
-            dimension: Some(wgpu::TextureViewDimension::D2),
-            aspect: wgpu::TextureAspect::DepthOnly,
-            base_mip_level: 0,
-            mip_level_count: None,
-            base_array_layer: 0,
-            array_layer_count: None,
-        });
+        let depth_texture = gpu
+            .new_texture("Viewport depth texture")
+            .as_render_target()
+            .with_format(crate::TextureFormat::Depth32Float)
+            .create_empty(&[width, height]);
 
         let data_buffer = gpu
             .new_buffer("Viewport buffer")
@@ -93,13 +74,11 @@ impl<'a> Viewport {
         let sc_desc = RefCell::new(sc_desc);
         // let swap_chain = RefCell::new(swap_chain);
         let depth_texture = RefCell::new(depth_texture);
-        let depth_view = RefCell::new(depth_view);
 
         Self {
             gpu,
             surface,
             depth_texture,
-            depth_view,
             sc_desc,
             data_buffer,
             resize_to: RefCell::new(None),
@@ -169,32 +148,13 @@ impl<'a> Viewport {
         self.configure_surface();
 
         // depth
-        let depth_texture = self.gpu.device.create_texture(&wgpu::TextureDescriptor {
-            label: Some("Depth Texture"),
-            size: wgpu::Extent3d {
-                width,
-                height,
-                depth_or_array_layers: 1,
-            },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Depth32Float,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-        });
-        let depth_view = depth_texture.create_view(&wgpu::TextureViewDescriptor {
-            label: Some("Depth Texture View"),
-            format: Some(wgpu::TextureFormat::Depth32Float),
-            dimension: Some(wgpu::TextureViewDimension::D2),
-            aspect: wgpu::TextureAspect::DepthOnly,
-            base_mip_level: 0,
-            mip_level_count: None,
-            base_array_layer: 0,
-            array_layer_count: None,
-        });
+        let depth_texture = self
+            .gpu
+            .new_texture("Viewport depth texture")
+            .as_render_target()
+            .create_empty(&[width, height]);
 
         self.depth_texture.replace(depth_texture);
-        self.depth_view.replace(depth_view);
 
         // Update the data buffer
         self.gpu.queue.write_buffer(
@@ -226,7 +186,16 @@ impl<'a> Viewport {
     pub fn begin_frame(&self) -> Result<Frame, GpuError> {
         self.resolve_resize();
         match Frame::new(&self.gpu, &self.surface) {
-            Ok(frame) => Ok(frame),
+            Ok(mut frame) => {
+                // TODO: Ideally we should not be creating a new texture view every frame.
+                let depth_texture_view = self
+                    .depth_texture
+                    .borrow()
+                    .create_view(&wgpu::TextureViewDescriptor::default());
+
+                frame.depth_texture = Some(depth_texture_view);
+                Ok(frame)
+            }
             Err(GpuError::SurfaceError(wgpu::SurfaceError::Outdated)) => {
                 // Attempt to resize the window if the surface is outdated.
                 // If the window is the same size, then a simple resize will
