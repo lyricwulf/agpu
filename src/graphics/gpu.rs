@@ -97,7 +97,7 @@ impl GpuHandle {
             .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: Some(label) });
         CommandEncoder {
             inner: ManuallyDrop::new(inner),
-            queue: &self.queue,
+            gpu: self.clone(),
         }
     }
 
@@ -143,25 +143,30 @@ impl Deref for GpuHandle {
     }
 }
 
-pub struct CommandEncoder<'a> {
+pub struct CommandEncoder {
     inner: ManuallyDrop<wgpu::CommandEncoder>,
-    queue: &'a wgpu::Queue,
+    pub(crate) gpu: GpuHandle,
 }
-impl Deref for CommandEncoder<'_> {
+impl CommandEncoder {
+    pub fn finish(mut self) -> wgpu::CommandBuffer {
+        unsafe { ManuallyDrop::take(&mut self.inner).finish() }
+    }
+}
+impl Deref for CommandEncoder {
     type Target = wgpu::CommandEncoder;
     fn deref(&self) -> &Self::Target {
         &self.inner
     }
 }
-impl DerefMut for CommandEncoder<'_> {
+impl DerefMut for CommandEncoder {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.inner
     }
 }
 
-impl Drop for CommandEncoder<'_> {
+impl Drop for CommandEncoder {
     fn drop(&mut self) {
         let inner = unsafe { ManuallyDrop::take(&mut self.inner) };
-        self.queue.submit([inner.finish()]);
+        self.gpu.queue.submit([inner.finish()]);
     }
 }
