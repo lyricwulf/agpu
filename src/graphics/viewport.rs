@@ -9,7 +9,7 @@ pub use render_pass::*;
 
 use std::{cell::RefCell, ops::Deref};
 
-use crate::{GpuError, GpuHandle};
+use crate::{GpuError, GpuHandle, Texture};
 
 pub trait BeginRenderFrame {
     fn begin_frame(&self) -> Result<Frame, GpuError>;
@@ -57,11 +57,7 @@ impl<'a> Viewport {
         };
         surface.configure(&gpu.device, &sc_desc);
 
-        let depth_texture = gpu
-            .new_texture("Viewport depth texture")
-            .as_render_target()
-            .with_format(crate::TextureFormat::Depth32Float)
-            .create_empty(&[width, height]);
+        let depth_texture = Self::create_depth_texture(&gpu, width, height);
 
         let data_buffer = gpu
             .new_buffer("Viewport buffer")
@@ -97,6 +93,13 @@ impl<'a> Viewport {
     fn configure_surface(&self) {
         self.surface
             .configure(&self.gpu.device, &self.sc_desc.borrow());
+    }
+
+    fn create_depth_texture(gpu: &GpuHandle, width: u32, height: u32) -> Texture {
+        gpu.new_texture("Viewport depth texture")
+            .as_render_target()
+            .with_format(crate::TextureFormat::Depth32Float)
+            .create_empty(&[width, height])
     }
 
     /// Queues a resize
@@ -148,11 +151,7 @@ impl<'a> Viewport {
         self.configure_surface();
 
         // depth
-        let depth_texture = self
-            .gpu
-            .new_texture("Viewport depth texture")
-            .as_render_target()
-            .create_empty(&[width, height]);
+        let depth_texture = Self::create_depth_texture(&self.gpu, width, height);
 
         self.depth_texture.replace(depth_texture);
 
