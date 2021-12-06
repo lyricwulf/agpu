@@ -185,17 +185,16 @@ impl<'a> Viewport {
 
     pub fn begin_frame(&self) -> Result<Frame, GpuError> {
         self.resolve_resize();
-        match Frame::new(&self.gpu, &self.surface) {
-            Ok(mut frame) => {
-                // TODO: Ideally we should not be creating a new texture view every frame.
-                let depth_texture_view = self
-                    .depth_texture
-                    .borrow()
-                    .create_view(&wgpu::TextureViewDescriptor::default());
 
-                frame.depth_texture = Some(depth_texture_view);
-                Ok(frame)
-            }
+        // TODO: Ideally we should not be creating a new depth texture view every frame.
+        match Frame::new(
+            &self.gpu,
+            &self.surface,
+            self.depth_texture
+                .borrow()
+                .create_view(&wgpu::TextureViewDescriptor::default()),
+        ) {
+            Ok(frame) => Ok(frame),
             Err(GpuError::SurfaceError(wgpu::SurfaceError::Outdated)) => {
                 // Attempt to resize the window if the surface is outdated.
                 // If the window is the same size, then a simple resize will

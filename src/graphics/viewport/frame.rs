@@ -13,7 +13,7 @@ pub struct Frame<'a> {
     /// ManuallyDrop because we call `.present()` on it to present to screen
     surface_texture: ManuallyDrop<wgpu::SurfaceTexture>,
     /// The Optional depth texture
-    pub depth_texture: Option<wgpu::TextureView>,
+    pub depth_texture: wgpu::TextureView,
     pub view: wgpu::TextureView,
     pub encoder: ManuallyDrop<CommandEncoder>,
     pub delta_time: Option<f32>,
@@ -79,7 +79,11 @@ impl Frame<'_> {
 impl<'a> Frame<'a> {
     /// Creates a new Frame from the Surface
     /// We
-    pub fn new(gpu: &'a GpuHandle, surface: &wgpu::Surface) -> Result<Self, GpuError> {
+    pub fn new(
+        gpu: &'a GpuHandle,
+        surface: &wgpu::Surface,
+        depth: wgpu::TextureView,
+    ) -> Result<Self, GpuError> {
         let frame = surface
             .get_current_texture()
             .map_err(GpuError::SurfaceError)?;
@@ -95,7 +99,7 @@ impl<'a> Frame<'a> {
         Ok(Frame {
             gpu,
             surface_texture: ManuallyDrop::new(frame),
-            depth_texture: None,
+            depth_texture: depth,
             view: frame_view,
             encoder: ManuallyDrop::new(encoder),
             delta_time: None,

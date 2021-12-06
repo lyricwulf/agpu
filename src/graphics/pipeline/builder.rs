@@ -158,6 +158,29 @@ impl<'a> PipelineBuilder<'a> {
         self
     }
 
+    pub fn with_depth(mut self) -> Self {
+        self.desc.depth_stencil = Some(wgpu::DepthStencilState {
+            depth_write_enabled: true,
+            depth_compare: wgpu::CompareFunction::Less,
+            stencil: wgpu::StencilState::default(),
+            format: wgpu::TextureFormat::Depth32Float,
+            bias: wgpu::DepthBiasState::default(),
+        });
+        self
+    }
+
+    pub fn with_depth_stencil(mut self) -> Self {
+        self.desc.depth_stencil = Some(wgpu::DepthStencilState {
+            depth_write_enabled: true,
+            depth_compare: wgpu::CompareFunction::Less,
+            // TODO: Actually need a stencil state to use stencil lol
+            stencil: wgpu::StencilState::default(),
+            format: wgpu::TextureFormat::Depth24PlusStencil8,
+            bias: wgpu::DepthBiasState::default(),
+        });
+        self
+    }
+
     fn str_from_bytes(bytes: &[u8]) -> Result<&str, GpuError> {
         std::str::from_utf8(bytes).map_err(|_| GpuError::ShaderParseError)
     }
