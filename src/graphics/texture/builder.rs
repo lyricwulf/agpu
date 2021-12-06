@@ -193,6 +193,24 @@ impl TextureBuilder<'_> {
         self.texture.usage |= wgpu::TextureUsages::RENDER_ATTACHMENT;
         self
     }
+
+    pub fn as_depth(mut self) -> Self {
+        self.texture.usage |= wgpu::TextureUsages::RENDER_ATTACHMENT;
+        self.texture.format = wgpu::TextureFormat::Depth32Float;
+        self
+    }
+
+    pub fn as_depth24(mut self) -> Self {
+        self.texture.usage |= wgpu::TextureUsages::RENDER_ATTACHMENT;
+        self.texture.format = wgpu::TextureFormat::Depth24Plus;
+        self
+    }
+
+    pub fn as_depth_stencil(mut self) -> Self {
+        self.texture.usage |= wgpu::TextureUsages::RENDER_ATTACHMENT;
+        self.texture.format = wgpu::TextureFormat::Depth24PlusStencil8;
+        self
+    }
 }
 
 impl crate::GpuHandle {
