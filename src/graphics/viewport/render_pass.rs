@@ -69,24 +69,28 @@ pub trait DepthAttachmentBuild {
 }
 
 impl<'a> DepthAttachmentBuild for wgpu::RenderPassDepthStencilAttachment<'a> {
-    fn clear_depth_val(self, val: f32) -> Self {
-        if let Some(mut ops) = self.depth_ops {
+    fn clear_depth_val(mut self, val: f32) -> Self {
+        if let Some(mut ops) = self.depth_ops.as_mut() {
             ops.load = wgpu::LoadOp::Clear(val);
         }
         self
     }
-    fn clear_stencil_val(self, val: u32) -> Self {
-        if let Some(mut ops) = self.stencil_ops {
+    fn clear_stencil_val(mut self, val: u32) -> Self {
+        if let Some(mut ops) = self.stencil_ops.as_mut() {
             ops.load = wgpu::LoadOp::Clear(val);
         }
         self
     }
+    /// Clear depth to 1.0
     fn clear_depth(self) -> Self {
-        self.clear_depth_val(0.0)
+        // Depth is usually cleared to 1.0
+        self.clear_depth_val(1.0)
     }
+    /// Clear stencil to 0
     fn clear_stencil(self) -> Self {
         self.clear_stencil_val(0)
     }
+    /// Clear depth to 1.0 and stencil to 0, if they exist respectively
     fn clear(self) -> Self {
         self.clear_depth().clear_stencil()
     }
@@ -389,7 +393,7 @@ impl Frame<'_> {
 
     pub const fn attach_depth(&self) -> DepthAttachment<'_> {
         wgpu::RenderPassDepthStencilAttachment {
-            view: &self.view,
+            view: &self.depth_texture,
             depth_ops: Some(wgpu::Operations {
                 load: wgpu::LoadOp::Load,
                 store: true,
@@ -400,7 +404,7 @@ impl Frame<'_> {
 
     pub const fn attach_stencil(&self) -> DepthAttachment<'_> {
         wgpu::RenderPassDepthStencilAttachment {
-            view: &self.view,
+            view: &self.depth_texture,
             depth_ops: None,
             stencil_ops: Some(wgpu::Operations {
                 load: wgpu::LoadOp::Load,
@@ -411,7 +415,7 @@ impl Frame<'_> {
 
     pub const fn attach_depth_stencil(&self) -> DepthAttachment<'_> {
         wgpu::RenderPassDepthStencilAttachment {
-            view: &self.view,
+            view: &self.depth_texture,
             depth_ops: Some(wgpu::Operations {
                 load: wgpu::LoadOp::Load,
                 store: true,
