@@ -188,7 +188,6 @@ impl<'a, 'b> RenderPassBuilder<'a, 'b> {
                 color_attachments,
                 ..desc.clone()
             };
-            dbg!(&desc);
             self.encoder.begin_render_pass(&desc)
         } else {
             self.encoder.begin_render_pass(desc)
