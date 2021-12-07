@@ -47,7 +47,7 @@ impl SamplerBuilder<'_, '_> {
         self.clamp_to_border()
     }
 
-    pub const fn lerp_filter(mut self) -> Self {
+    pub const fn linear_filter(mut self) -> Self {
         self.inner.mag_filter = wgpu::FilterMode::Linear;
         self.inner.min_filter = wgpu::FilterMode::Linear;
         self.inner.mipmap_filter = wgpu::FilterMode::Linear;
