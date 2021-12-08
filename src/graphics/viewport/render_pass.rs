@@ -96,51 +96,6 @@ impl<'a> DepthAttachmentBuild for wgpu::RenderPassDepthStencilAttachment<'a> {
     }
 }
 
-// TODO: Allow multiple or custom render attachments
-// * We do not always want to render directly to the swap chain
-// * We may want to render to a texture, or a texture array
-
-// pub struct RenderAttachmentBuilder<'a> {
-//     view: &'a wgpu::TextureView,
-//     /// Ignored when render attachment is is load mode.
-//     /// A value of None means the attachment will load the previous frame's contents.
-//     clear_value: Option<u32>,
-//     store: bool,
-// }
-
-// impl<'a> RenderAttachmentBuilder<'a> {
-//     pub fn as_color_attachment(&self) -> wgpu::RenderPassColorAttachment {
-//         let load = if let Some(clear_value) = self.clear_value {
-//             wgpu::LoadOp::Clear(wgpu::Color {
-//                 r: (clear_value >> 24 & 0xFF) as f64 / 255.0,
-//                 g: (clear_value >> 16 & 0xFF) as f64 / 255.0,
-//                 b: (clear_value >> 8 & 0xFF) as f64 / 255.0,
-//                 a: (clear_value >> 0 & 0xFF) as f64 / 255.0,
-//             })
-//         } else {
-//             wgpu::LoadOp::Load
-//         };
-
-//         wgpu::Operations {
-//             load,
-//             store: self.store,
-//         };
-//         let ops = self.clear_value;
-
-//         wgpu::RenderPassColorAttachment {
-//             view: self.view,
-//             resolve_target: None,
-//             ops,
-//         }
-//     }
-
-//     pub fn as_depth_attachment(&self) -> wgpu::RenderPassDepthStencilAttachment {}
-// }
-
-// pub trait RenderColorAttachment {
-//     fn color_attachment(&self, attachment: &wgpu::Texture) -> &RenderAttachmentBuilder;
-// }
-
 impl<'a, 'b> RenderPassBuilder<'a, 'b> {
     pub fn new(encoder: &'a mut CommandEncoder, _gpu: &'a mut GpuHandle) -> Self {
         Self {
