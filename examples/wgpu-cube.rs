@@ -148,7 +148,7 @@ fn main() -> Result<(), BoxError> {
 
     program.on_resize(move |_, width, height| {
         let mx = generate_matrix(width as f32 / height as f32);
-        uniform_buf.write(mx.as_ref());
+        uniform_buf.write_unchecked(mx.as_ref());
     });
 
     program.run_draw(move |frame| {

@@ -146,6 +146,8 @@ impl<'a> BufferBuilder<'a> {
             inner,
             gpu: self.gpu.clone(),
             size,
+            label: self.label.map(|a| a.to_string()).unwrap_or_default(),
+            usages: self.usage,
         }
     }
 
@@ -158,6 +160,8 @@ impl<'a> BufferBuilder<'a> {
             inner,
             gpu: self.gpu.clone(),
             size,
+            label: self.label.map(|a| a.to_string()).unwrap_or_default(),
+            usages: self.usage,
         }
     }
 
