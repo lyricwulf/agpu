@@ -1,3 +1,5 @@
+use crate::Binding;
+
 // 'a: Label str
 pub struct SamplerBuilder<'a, 'gpu> {
     pub gpu: &'gpu wgpu::Device,
@@ -5,8 +7,17 @@ pub struct SamplerBuilder<'a, 'gpu> {
 }
 
 impl SamplerBuilder<'_, '_> {
-    pub fn create(&self) -> wgpu::Sampler {
-        self.gpu.create_sampler(&self.inner)
+    pub fn create(&self) -> Sampler {
+        let inner = self.gpu.create_sampler(&self.inner);
+        let filtering = self.inner.mag_filter == wgpu::FilterMode::Linear
+            || self.inner.min_filter == wgpu::FilterMode::Linear
+            || self.inner.mipmap_filter == wgpu::FilterMode::Linear;
+        let comparison = self.inner.compare.is_some();
+        Sampler {
+            inner,
+            filtering,
+            comparison,
+        }
     }
 
     /// How to deal with out of bounds accesses
@@ -74,6 +85,25 @@ impl crate::Gpu {
                 label: Some(label),
                 ..Default::default()
             },
+        }
+    }
+}
+
+pub struct Sampler {
+    pub inner: wgpu::Sampler,
+    filtering: bool,
+    comparison: bool,
+}
+crate::wgpu_inner_deref!(Sampler);
+impl Sampler {
+    pub fn bind(&self) -> Binding {
+        Binding {
+            visibility: Binding::DEFAULT_VISIBILITY,
+            ty: wgpu::BindingType::Sampler {
+                filtering: self.filtering,
+                comparison: self.comparison,
+            },
+            resource: wgpu::BindingResource::Sampler(self),
         }
     }
 }
