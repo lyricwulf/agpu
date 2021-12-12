@@ -231,6 +231,14 @@ impl<'a> RenderPass<'a> {
         self.inner.set_vertex_buffer(slot, buffer_slice);
         self
     }
+
+    /// Sets the scissor region.
+    ///
+    /// Subsequent draw calls will discard any fragments that fall outside this region.
+    pub fn set_scissor_rect(&mut self, x: u32, y: u32, width: u32, height: u32) -> &mut Self {
+        self.inner.set_scissor_rect(x, y, width, height);
+        self
+    }
 }
 
 impl<'a> Deref for RenderPass<'a> {
