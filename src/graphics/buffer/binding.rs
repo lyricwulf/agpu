@@ -12,7 +12,7 @@ impl crate::Buffer {
     /// };
     /// ```
     #[must_use]
-    pub fn bind_ubo(&self) -> Binding {
+    pub fn bind_uniform(&self) -> Binding {
         Binding {
             visibility: Binding::DEFAULT_VISIBILITY,
             ty: wgpu::BindingType::Buffer {
@@ -33,7 +33,7 @@ impl crate::Buffer {
     /// };
     /// ```
     #[must_use]
-    pub fn bind_ssbo(&self) -> Binding {
+    pub fn bind_storage(&self) -> Binding {
         Binding {
             visibility: Binding::DEFAULT_VISIBILITY,
             ty: wgpu::BindingType::Buffer {
@@ -55,7 +55,7 @@ impl crate::Buffer {
     /// };
     /// ```
     #[must_use]
-    pub fn bind_ssbo_readonly(&self) -> Binding {
+    pub fn bind_storage_readonly(&self) -> Binding {
         Binding {
             visibility: Binding::DEFAULT_VISIBILITY,
             ty: wgpu::BindingType::Buffer {
