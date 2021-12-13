@@ -128,7 +128,7 @@ fn main() -> Result<(), BoxError> {
         .create(mx.as_ref());
 
     let bind_group = gpu.create_bind_group(&[
-        uniform_buf.bind_ubo().in_vertex(),
+        uniform_buf.bind_uniform().in_vertex(),
         texture.bind_texture().sample_uint().in_fragment(),
     ]);
 
