@@ -14,6 +14,10 @@ layout (location = 0) out vec2 out_pos;
 layout (location = 1) out vec2 out_uv;
 layout (location = 2) out vec4 out_color;
 
+out gl_PerVertex {
+    vec4 gl_Position;
+};
+
 void main() {
     vec2 xy = (in_pos / viewport.size) * 2 - 1;
     gl_Position = vec4(xy, 0, 1); 

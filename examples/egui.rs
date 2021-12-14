@@ -1,20 +1,14 @@
 // ! Usage will be greatly improved in the future...
 
-use std::mem::size_of;
 use std::time::{Duration, Instant};
 
 use agpu::prelude::*;
 use egui::plot::{Line, Plot, Value, Values};
-use wgpu::util::DeviceExt;
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::WindowBuilder;
 
-use egui::epaint;
-
 fn main() {
-    tracing_subscriber::fmt::init();
-
     let framerate = 60.0;
     // Initialize winit
     let event_loop = EventLoop::new();
@@ -41,124 +35,10 @@ fn main() {
         .with_bind_groups(&[])
         .create();
 
-    let mut egui_ctx = egui::CtxRef::default();
+    let mut egui_ctx = agpu::egui::Egui::new(gpu.clone(), viewport.width(), viewport.height());
+
     // let mut stat_counts = [0; 5];
     let mut timestamps: Vec<(String, f32)> = vec![];
-
-    let vertex_layout = wgpu::VertexBufferLayout {
-        step_mode: wgpu::VertexStepMode::Vertex,
-        attributes: &wgpu::vertex_attr_array![0 => Float32x2, 1 => Float32x2, 2 => Unorm8x4],
-        array_stride: (2 + 2 + 1) * 4,
-    };
-
-    let mut vertex_buffers = Vec::<(Buffer, Buffer)>::new();
-
-    egui_ctx.begin_frame(Default::default());
-    let egui_font_texture = egui_ctx.texture();
-
-    let sampler = gpu.device.create_sampler(&wgpu::SamplerDescriptor {
-        label: Some("UI sampler"),
-        mag_filter: wgpu::FilterMode::Linear,
-        min_filter: wgpu::FilterMode::Linear,
-        mipmap_filter: wgpu::FilterMode::Linear,
-        ..Default::default()
-    });
-
-    // font data
-    // we need to convert the texture into rgba_srgb format
-    let mut pixels: Vec<u8> = Vec::with_capacity(egui_font_texture.pixels.len() * 4);
-    for srgba in egui_font_texture.srgba_pixels(0.33) {
-        pixels.push(srgba.r());
-        pixels.push(srgba.g());
-        pixels.push(srgba.b());
-        pixels.push(srgba.a());
-    }
-
-    let font_texture = gpu.device.create_texture_with_data(
-        &gpu.queue,
-        &wgpu::TextureDescriptor {
-            label: Some("EGUI font texture"),
-            size: wgpu::Extent3d {
-                width: egui_font_texture.width as u32,
-                height: egui_font_texture.height as u32,
-                depth_or_array_layers: 1,
-            },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Rgba8UnormSrgb,
-            usage: wgpu::TextureUsages::TEXTURE_BINDING,
-        },
-        &pixels,
-    );
-    let font_texture_view = font_texture.create_view(&wgpu::TextureViewDescriptor {
-        ..Default::default()
-    });
-
-    let bind_group_layout = gpu
-        .device
-        .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("UI bind group"),
-            entries: &[
-                wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::VERTEX,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
-                    },
-                    count: None,
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 1,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Texture {
-                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                        view_dimension: wgpu::TextureViewDimension::D2,
-                        multisampled: false,
-                    },
-                    count: None,
-                },
-                wgpu::BindGroupLayoutEntry {
-                    binding: 2,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Sampler {
-                        comparison: false,
-                        filtering: true,
-                    },
-                    count: None,
-                },
-            ],
-        });
-    let ui_bind_group = gpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some("UI bind group"),
-        layout: &bind_group_layout,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: wgpu::BindingResource::Buffer(
-                    viewport.data_buffer.as_entire_buffer_binding(),
-                ),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: wgpu::BindingResource::TextureView(&font_texture_view),
-            },
-            wgpu::BindGroupEntry {
-                binding: 2,
-                resource: wgpu::BindingResource::Sampler(&sampler),
-            },
-        ],
-    });
-
-    let ui_pipeline = gpu
-        .new_pipeline("")
-        .with_vertex_layouts(&[vertex_layout])
-        .with_fragment(include_bytes!("shader/egui.frag.spv"))
-        .with_vertex(include_bytes!("shader/egui.vert.spv"))
-        .with_bind_groups(&[&bind_group_layout])
-        .create();
 
     // Start the event loop
     event_loop.run(move |event, _, control_flow| {
@@ -172,8 +52,9 @@ fn main() {
                 };
 
                 match event {
-                    WindowEvent::Resized(_) => {
-                        // viewport.resize(new_size.width, new_size.height);
+                    WindowEvent::Resized(new_size) => {
+                        viewport.resize(new_size.width, new_size.height);
+                        egui_ctx.resize(new_size.width, new_size.height)
                     }
                     WindowEvent::CloseRequested => {
                         *control_flow = ControlFlow::Exit;
@@ -244,64 +125,15 @@ fn main() {
                         ui.add(Plot::new("Performance plot").line(line));
                     });
 
-                let (output, cl_sh) = egui_ctx.end_frame();
+                let output = egui_ctx.end_frame();
 
                 state.handle_output(&viewport.window, &egui_ctx, output);
 
-                let cl_me = egui_ctx.tessellate(cl_sh);
-
-                // update ui buffers
-                for (i, egui::ClippedMesh(_, mesh)) in cl_me.iter().enumerate() {
-                    // create any missing buffers
-                    if i >= vertex_buffers.len() {
-                        vertex_buffers.push((
-                            gpu.new_buffer("")
-                                .as_vertex_buffer()
-                                .allow_copy_to()
-                                .create(&mesh.vertices),
-                            gpu.new_buffer("")
-                                .as_index_buffer()
-                                .allow_copy_to()
-                                .create(&mesh.indices),
-                        ));
-                    } else {
-                        // resize buffer if needed
-                        if size_of::<epaint::Vertex>() * mesh.vertices.len()
-                            > vertex_buffers[i].0.size()
-                        {
-                            vertex_buffers[i].0 = gpu
-                                .new_buffer("")
-                                .as_vertex_buffer()
-                                .allow_copy_to()
-                                .create(&mesh.vertices);
-                        } else {
-                            gpu.queue.write_buffer(
-                                &vertex_buffers[i].0,
-                                0,
-                                bytemuck::cast_slice(&mesh.vertices),
-                            );
-                        };
-
-                        if size_of::<u32>() * mesh.indices.len() > vertex_buffers[i].1.size() {
-                            vertex_buffers[i].1 = gpu
-                                .new_buffer("")
-                                .as_index_buffer()
-                                .allow_copy_to()
-                                .create(&mesh.indices);
-                        } else {
-                            gpu.queue.write_buffer(
-                                &vertex_buffers[i].1,
-                                0,
-                                bytemuck::cast_slice(&mesh.indices),
-                            );
-                        }
-                    }
-                }
-                // Submit buffer updates
-                gpu.queue.submit(None);
-
                 // Render gpu
-                let mut frame = viewport.begin_frame().unwrap();
+                let mut frame = match viewport.begin_frame() {
+                    Ok(frame) => frame,
+                    Err(_) => return,
+                };
 
                 // FIXME: ERROR Vulkan validation error, VK_IMAGE_LAYOUT_UNDEFINED
                 // * This ERROR only happens in our example and not when used in our project
@@ -320,18 +152,7 @@ fn main() {
                 {
                     let mut ui_pass = frame.render_pass("UI Render Pass").begin();
 
-                    ui_pass.set_pipeline(&ui_pipeline);
-                    ui_pass.set_bind_group(0, &ui_bind_group, &[]);
-
-                    for (egui::ClippedMesh(clip, me), (vb, ib)) in cl_me.iter().zip(&vertex_buffers)
-                    {
-                        if let Some((x, y, width, height)) = render_region(clip, &viewport) {
-                            ui_pass.set_scissor_rect(x, y, width, height);
-                            ui_pass.set_vertex_buffer(0, vb.slice(..));
-                            ui_pass.set_index_buffer_u32(ib.slice(..));
-                            ui_pass.draw_indexed(0..me.indices.len() as u32, 0, 0..1);
-                        }
-                    }
+                    egui_ctx.draw(&mut ui_pass, viewport.width(), viewport.height());
                 }
 
                 // if let Ok(stats) = gpu.total_statistics() {
@@ -364,41 +185,4 @@ fn next_frame_time(framerate: f32, last_update_inst: &mut Instant) -> Option<Ins
     } else {
         Some(Instant::now() + target_frametime - time_since_last_frame)
     }
-}
-
-/// Uses https://github.com/hasenbanck/egui_wgpu_backend/blob/master/src/lib.rs
-fn render_region(clip_rect: &egui::Rect, viewport: &Viewport) -> Option<(u32, u32, u32, u32)> {
-    let scale_factor = 1.0;
-    // Transform clip rect to physical pixels.
-    let clip_min_x = scale_factor * clip_rect.min.x;
-    let clip_min_y = scale_factor * clip_rect.min.y;
-    let clip_max_x = scale_factor * clip_rect.max.x;
-    let clip_max_y = scale_factor * clip_rect.max.y;
-
-    // Make sure clip rect can fit within an `u32`.
-    let clip_min_x = clip_min_x.clamp(0.0, viewport.width() as f32);
-    let clip_min_y = clip_min_y.clamp(0.0, viewport.height() as f32);
-    let clip_max_x = clip_max_x.clamp(clip_min_x, viewport.width() as f32);
-    let clip_max_y = clip_max_y.clamp(clip_min_y, viewport.height() as f32);
-
-    let clip_min_x = clip_min_x.round() as u32;
-    let clip_min_y = clip_min_y.round() as u32;
-    let clip_max_x = clip_max_x.round() as u32;
-    let clip_max_y = clip_max_y.round() as u32;
-
-    let width = (clip_max_x - clip_min_x).max(1);
-    let height = (clip_max_y - clip_min_y).max(1);
-
-    // Clip scissor rectangle to target size.
-    let x = clip_min_x.min(viewport.width());
-    let y = clip_min_y.min(viewport.height());
-    let width = width.min(viewport.width() - x);
-    let height = height.min(viewport.height() - y);
-
-    // Skip rendering with zero-sized clip areas.
-    if width == 0 || height == 0 {
-        return None;
-    }
-
-    Some((x, y, width, height))
 }

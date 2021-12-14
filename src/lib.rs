@@ -27,3 +27,7 @@ pub_const_flag!(
 #[cfg(feature = "winit")]
 pub mod winit;
 pub use crate::winit::*;
+
+#[cfg(feature = "egui")]
+pub mod egui;
+pub use crate::egui::*;
