@@ -32,7 +32,7 @@ pub struct Gpu {
 impl Gpu {
     #[allow(clippy::new_ret_no_self)]
     /// Shortcut to Self::builder().build() with the default settings.
-    pub fn new<W>(self, window: &W) -> Result<GpuHandle, GpuError>
+    pub fn new<W>(window: &W) -> Result<GpuHandle, GpuError>
     where
         W: HasRawWindowHandle,
     {
@@ -47,7 +47,7 @@ impl Gpu {
 
     /// Converts the Gpu into a `GpuHandle` which can be passed around by clone
     #[must_use]
-    pub fn to_handle(self) -> GpuHandle {
+    pub fn into_handle(self) -> GpuHandle {
         GpuHandle {
             context: Rc::new(self),
         }

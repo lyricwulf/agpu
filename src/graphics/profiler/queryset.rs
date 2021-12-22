@@ -9,8 +9,6 @@ pub struct QuerySet {
     pub(crate) inner: wgpu::QuerySet,
     pub(crate) buffer: wgpu::Buffer,
     pub(crate) ty: wgpu::QueryType,
-    // /// Currently unused.
-    // pub(crate) query_count: u32,
 }
 /// Allows deref of a `QuerySet` to the inner `wgpu::QuerySet`.
 impl Deref for QuerySet {
@@ -54,7 +52,7 @@ impl QuerySet {
         let buffer_size = query_size * count * size_of::<u64>() as u32;
 
         // Create the query set
-        let inner = device.create_query_set(&wgpu::QuerySetDescriptor { ty, count, label });
+        let inner = device.create_query_set(&wgpu::QuerySetDescriptor { label, ty, count });
 
         let buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label,
@@ -62,12 +60,7 @@ impl QuerySet {
             usage: QUERYSET_BUFFER_USAGE,
             mapped_at_creation: false,
         });
-        QuerySet {
-            ty,
-            inner,
-            buffer,
-            // query_count: 0,
-        }
+        QuerySet { inner, buffer, ty }
     }
 
     pub fn query_size(&self) -> u32 {

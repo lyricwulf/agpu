@@ -170,7 +170,7 @@ impl<'a> GpuBuilder<'a> {
             preferred_format,
         };
 
-        Ok(gpu.to_handle())
+        Ok(gpu.into_handle())
     }
 
     fn features(&self, adapter: &wgpu::Adapter) -> wgpu::Features {
