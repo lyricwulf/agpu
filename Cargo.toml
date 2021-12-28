@@ -12,12 +12,12 @@ license = "MIT OR Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-wgpu = { version = "0.11", features = ["spirv"] }
+wgpu = { version = "0.12", features = ["spirv"] }
 half = { version = "1.8", optional = true }
 futures = "0.3"
 bytemuck = "1.7"
 num-traits = "0.2"
-raw-window-handle = "0.3"
+raw-window-handle = "0.4"
 tracing = "0.1"
 
 [dependencies.agpu-macro]
@@ -25,12 +25,13 @@ version = "0.1.1"
 optional = true
 
 [dependencies.winit]
-version = "0.25"
+version = "0.26"
 optional = true
 
 [dependencies.egui]
 optional = true 
-version = "0.15"
+git = "https://github.com/emilk/egui"
+rev = "ee002145117df5be9c8889bfbcf569f3493dec79"
 features = ["convert_bytemuck"]
 
 [features]
@@ -42,6 +43,6 @@ default = ["profiler", "egui", "winit", "macro", "half"]
 # Used in example
 tracing-subscriber = "0.3"
 # egui example
-egui-winit = "0.15"
+egui-winit = { git = "https://github.com/emilk/egui", rev = "ee002145117df5be9c8889bfbcf569f3493dec79" }
 # math lib for examples
 nalgebra = "0.29"

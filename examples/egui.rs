@@ -67,49 +67,48 @@ fn main() {
             }
             Event::RedrawRequested(_) => {
                 // UI logic
-                egui_ctx.begin_frame(state.take_egui_input(&viewport.window));
-                egui::CentralPanel::default()
-                    .frame(egui::Frame {
-                        margin: egui::vec2(100.0, 100.0),
-                        ..egui::Frame::none()
-                    })
-                    .show(&egui_ctx, |ui| {
-                        egui::SidePanel::left("dog")
-                            .frame(egui::Frame {
-                                margin: egui::vec2(40.0, 40.0),
-                                corner_radius: 4.0,
-                                fill: egui::Color32::from_rgb(4, 4, 4),
-                                ..egui::Frame::none()
-                            })
-                            .show_inside(ui, |ui| {
-                                egui::Grid::new("stats grid").show(ui, |ui| {
-                                    // // Shows stat counts
-                                    // FIXME: Stat counts are broken and cause gpu to hang
-                                    // for (count, label) in stat_counts
-                                    //     .iter()
-                                    //     .zip(thermite_core::PIPELINE_STATISTICS_LABELS)
-                                    // {
-                                    //     ui.label(label);
-                                    //     ui.label(count);
-                                    //     ui.end_row();
-                                    // }
+                let output = egui_ctx.run(state.take_egui_input(&viewport.window), |ui| {
+                    egui::CentralPanel::default()
+                        .frame(egui::Frame {
+                            margin: egui::vec2(100.0, 100.0),
+                            ..egui::Frame::none()
+                        })
+                        .show(&ui, |ui| {
+                            egui::SidePanel::left("dog")
+                                .frame(egui::Frame {
+                                    margin: egui::vec2(40.0, 40.0),
+                                    corner_radius: 4.0,
+                                    fill: egui::Color32::from_rgb(4, 4, 4),
+                                    ..egui::Frame::none()
+                                })
+                                .show_inside(ui, |ui| {
+                                    egui::Grid::new("stats grid").show(ui, |ui| {
+                                        // // Shows stat counts
+                                        // FIXME: Stat counts are broken and cause gpu to hang
+                                        // for (count, label) in stat_counts
+                                        //     .iter()
+                                        //     .zip(thermite_core::PIPELINE_STATISTICS_LABELS)
+                                        // {
+                                        //     ui.label(label);
+                                        //     ui.label(count);
+                                        //     ui.end_row();
+                                        // }
 
-                                    for (label, value) in &timestamps {
-                                        ui.label(label);
-                                        ui.label(value.to_string() + " ms");
-                                        ui.end_row();
+                                        for (label, value) in &timestamps {
+                                            ui.label(label);
+                                            ui.label(value.to_string() + " ms");
+                                            ui.end_row();
+                                        }
+                                    });
+                                    ui.add(egui::Label::new("Hello World!"));
+                                    ui.label("A shorter and more convenient way to add a label.");
+                                    if ui.button("Click me").clicked() { /* take some action here */
                                     }
-                                });
-                                ui.add(egui::Label::new("Hello World!"));
-                                ui.label("A shorter and more convenient way to add a label.");
-                                if ui.button("Click me").clicked() { /* take some action here */ }
-                            })
-                    });
+                                })
+                        });
 
-                // Window
-                egui::Window::new("dog")
-                    .resizable(true)
-                    .show(&egui_ctx, |ui| {
+                    // Window
+                    egui::Window::new("dog").resizable(true).show(&ui, |ui| {
                         ui.add(egui::Label::new("Hello World!"));
                         ui.heading("im a dog");
                         ui.label("A shorter and more convenient way to add a label.");
@@ -122,10 +121,11 @@ fn main() {
                         let line = Line::new(Values::from_values_iter(sin));
 
                         // performance plotter
-                        ui.add(Plot::new("Performance plot").line(line));
+                        Plot::new("Performance plot").show(ui, |plot| {
+                            plot.line(line);
+                        });
                     });
-
-                let output = egui_ctx.end_frame();
+                });
 
                 state.handle_output(&viewport.window, &egui_ctx, output);
 

@@ -316,6 +316,8 @@ impl<'a> PipelineBuilder<'a> {
             depth_stencil: self.desc.depth_stencil.clone(),
             multisample: self.desc.multisample,
             fragment,
+            // TODO: Implement multiview interface
+            multiview: None,
         };
 
         // Create the pipeline

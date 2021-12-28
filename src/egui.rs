@@ -47,7 +47,7 @@ impl Egui {
 
         // Create the font texture
         // Egui ctx.texture() requires that we first begin a frame
-        ctx.begin_frame(Default::default());
+        ctx.run(Default::default(), |_| {}).0.take();
         // Now we can generate the texture
         let egui_font_texture = ctx.texture();
 
@@ -105,8 +105,12 @@ impl Egui {
             .write_unchecked(&[width as f32, height as f32]);
     }
 
-    pub fn end_frame(&mut self) -> egui::Output {
-        let (output, shapes) = self.ctx.end_frame();
+    pub fn run(
+        &mut self,
+        new_input: egui::RawInput,
+        run_ui: impl FnOnce(&egui::CtxRef),
+    ) -> egui::Output {
+        let (output, shapes) = self.ctx.run(new_input, run_ui);
         let meshes = self.ctx.tessellate(shapes);
         self.update_buffers(&meshes);
         self.last_meshes = meshes;

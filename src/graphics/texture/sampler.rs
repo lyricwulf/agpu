@@ -97,12 +97,18 @@ pub struct Sampler {
 crate::wgpu_inner_deref!(Sampler);
 impl Sampler {
     pub fn bind(&self) -> Binding {
+        // TODO: Decide if samplers type should be automatically determined,
+        // just because the sampler CAN be used as comparison or filtering,
+        // maybe doesn't necessarily mean that we will bind it as such
+        let ty = match (self.comparison, self.filtering) {
+            (true, _) => wgpu::SamplerBindingType::Comparison,
+            (false, true) => wgpu::SamplerBindingType::NonFiltering,
+            (false, false) => wgpu::SamplerBindingType::Filtering,
+        };
+
         Binding {
             visibility: Binding::DEFAULT_VISIBILITY,
-            ty: wgpu::BindingType::Sampler {
-                filtering: self.filtering,
-                comparison: self.comparison,
-            },
+            ty: wgpu::BindingType::Sampler(ty),
             resource: wgpu::BindingResource::Sampler(self),
         }
     }
