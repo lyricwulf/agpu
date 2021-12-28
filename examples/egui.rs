@@ -73,7 +73,7 @@ fn main() {
                             margin: egui::vec2(100.0, 100.0),
                             ..egui::Frame::none()
                         })
-                        .show(&ui, |ui| {
+                        .show(ui, |ui| {
                             egui::SidePanel::left("dog")
                                 .frame(egui::Frame {
                                     margin: egui::vec2(40.0, 40.0),
@@ -108,7 +108,7 @@ fn main() {
                         });
 
                     // Window
-                    egui::Window::new("dog").resizable(true).show(&ui, |ui| {
+                    egui::Window::new("dog").resizable(true).show(ui, |ui| {
                         ui.add(egui::Label::new("Hello World!"));
                         ui.heading("im a dog");
                         ui.label("A shorter and more convenient way to add a label.");
