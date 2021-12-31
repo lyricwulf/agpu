@@ -117,7 +117,7 @@ fn main() -> Result<(), BoxError> {
         .new_texture("Texture")
         .with_format(TextureFormat::R8Uint)
         .allow_binding()
-        .create(&texels, &[size, size]);
+        .create((size, size), &texels);
 
     // Create other resources
     let mx = generate_matrix(program.viewport.aspect_ratio());

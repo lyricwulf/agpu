@@ -289,7 +289,10 @@ impl crate::CommandEncoder {
     }
 }
 
-impl Texture {
+impl<D> Texture<D>
+where
+    D: crate::TextureDimensions,
+{
     pub fn attach_render(&self) -> RenderAttachment<'_> {
         wgpu::RenderPassColorAttachment {
             view: &self.view,

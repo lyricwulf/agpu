@@ -29,7 +29,7 @@ pub struct Viewport {
     pub sc_desc: RefCell<wgpu::SurfaceConfiguration>,
     /// Uses RefCell for interior mutability.
     // pub swap_chain: RefCell<wgpu::SwapChain>,
-    pub depth_texture: RefCell<crate::Texture>,
+    pub depth_texture: RefCell<crate::Texture<crate::D2>>,
     /// Data buffer for viewport properties.
     /// Binding 0: viewport size f32x2
     pub data_buffer: wgpu::Buffer,
@@ -95,11 +95,11 @@ impl<'a> Viewport {
             .configure(&self.gpu.device, &self.sc_desc.borrow());
     }
 
-    fn create_depth_texture(gpu: &GpuHandle, width: u32, height: u32) -> Texture {
+    fn create_depth_texture(gpu: &GpuHandle, width: u32, height: u32) -> Texture<crate::D2> {
         gpu.new_texture("Viewport depth texture")
             .as_render_target()
             .with_format(crate::TextureFormat::Depth32Float)
-            .create_empty(&[width, height])
+            .create_empty((width, height))
     }
 
     /// Queues a resize

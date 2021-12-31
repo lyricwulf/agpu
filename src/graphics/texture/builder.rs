@@ -28,26 +28,14 @@ impl TextureBuilder<'_> {
     /// Create the buffer with the given data as its contents.
     /// Implicitly adds the `COPY_DST` usage if it is not present in the descriptor,
     /// as it is required to be able to upload the data to the gpu.
-    pub fn create<T>(mut self, data: &[T], size: &[u32]) -> crate::Texture
+    pub fn create<T, D>(mut self, size: D, data: &[T]) -> crate::Texture<D>
     where
         T: bytemuck::Pod,
+        D: crate::TextureDimensions,
     {
-        let (width, height, depth_or_array_layers) = {
-            let mut size = size.iter();
-            (
-                *size.next().unwrap_or(&1),
-                *size.next().unwrap_or(&1),
-                *size.next().unwrap_or(&1),
-            )
-        };
-
         self.texture.usage |= wgpu::TextureUsages::COPY_DST;
-        self.texture.size = wgpu::Extent3d {
-            width,
-            height,
-            depth_or_array_layers,
-        };
-        self.texture.dimension = size_dim(&self.texture.size);
+        self.texture.size = size.as_extent();
+        self.texture.dimension = size.dim();
 
         let texture = self.gpu.device.create_texture(&self.texture);
         let view = texture.create_view(&self.view);
@@ -58,9 +46,9 @@ impl TextureBuilder<'_> {
             wgpu::ImageDataLayout {
                 offset: 0,
                 bytes_per_row: NonZeroU32::new(
-                    self.texture.format.describe().block_size as u32 * width,
+                    self.texture.format.describe().block_size as u32 * size.width(),
                 ),
-                rows_per_image: None,
+                rows_per_image: NonZeroU32::new(size.height()),
             },
             self.texture.size,
         );
@@ -70,77 +58,29 @@ impl TextureBuilder<'_> {
             inner: texture,
             view,
             format: self.texture.format,
-            size: self.texture.size,
+            size,
             usage: self.texture.usage,
         }
     }
 
     /// Creates the texture with a given size, and filled with 0.
-    pub fn create_empty(mut self, size: &[u32]) -> crate::Texture {
-        let (width, height, depth_or_array_layers) = {
-            let mut size = size.iter();
-            (
-                *size.next().unwrap_or(&1),
-                *size.next().unwrap_or(&1),
-                *size.next().unwrap_or(&1),
-            )
-        };
-
-        self.texture.usage |= wgpu::TextureUsages::COPY_DST;
-        self.texture.size = wgpu::Extent3d {
-            width,
-            height,
-            depth_or_array_layers,
-        };
-        self.texture.dimension = size_dim(&self.texture.size);
-
-        let texture = self.gpu.device.create_texture(&self.texture);
-        let view = texture.create_view(&self.view);
-
-        crate::Texture {
-            gpu: self.gpu,
-            inner: texture,
-            view,
-            format: self.texture.format,
-            size: self.texture.size,
-            usage: self.texture.usage,
-        }
-    }
-
-    /// Assumed that the input data is uniformly sized
-    #[deprecated(note = "Use `create` instead")]
-    pub fn create2d<T>(mut self, data: &[&[T]]) -> crate::Texture
+    pub fn create_empty<D>(mut self, size: D) -> crate::Texture<D>
     where
-        T: bytemuck::Pod,
+        D: crate::TextureDimensions,
     {
-        let width = data.len() as u32;
-        let height = data[0].len() as u32;
-        self.texture.size = wgpu::Extent3d {
-            width,
-            height,
-            depth_or_array_layers: 1,
-        };
-        self.texture.dimension = wgpu::TextureDimension::D2;
+        self.texture.usage |= wgpu::TextureUsages::COPY_DST;
+        self.texture.size = size.as_extent();
+        self.texture.dimension = size.dim();
 
         let texture = self.gpu.device.create_texture(&self.texture);
         let view = texture.create_view(&self.view);
-        self.gpu.queue.write_texture(
-            texture.as_image_copy(),
-            bytemuck::cast_slice(unsafe { flatten_2d(data) }),
-            wgpu::ImageDataLayout {
-                offset: 0,
-                bytes_per_row: NonZeroU32::new(width),
-                rows_per_image: None,
-            },
-            wgpu::Extent3d::default(),
-        );
 
         crate::Texture {
             gpu: self.gpu,
             inner: texture,
             view,
             format: self.texture.format,
-            size: self.texture.size,
+            size,
             usage: self.texture.usage,
         }
     }
@@ -152,21 +92,6 @@ impl TextureBuilder<'_> {
 
     pub const fn multisample(mut self, samples: u32) -> Self {
         self.texture.sample_count = samples;
-        self
-    }
-
-    pub const fn d1(mut self) -> Self {
-        self.texture.dimension = wgpu::TextureDimension::D1;
-        self
-    }
-
-    pub const fn d2(mut self) -> Self {
-        self.texture.dimension = wgpu::TextureDimension::D2;
-        self
-    }
-
-    pub const fn d3(mut self) -> Self {
-        self.texture.dimension = wgpu::TextureDimension::D3;
         self
     }
 
@@ -225,64 +150,5 @@ impl crate::GpuHandle {
         builder.texture.label = Some(label);
         builder.view.label = Some(label);
         builder
-    }
-}
-
-unsafe fn flatten_2d<'a, T>(data: &[&[T]]) -> &'a [T]
-where
-    T: bytemuck::Pod,
-{
-    std::slice::from_raw_parts(data.as_ptr() as *const T, data.len() * data[0].len())
-}
-
-pub const fn size_dim(size: &wgpu::Extent3d) -> wgpu::TextureDimension {
-    if size.depth_or_array_layers == 1 {
-        if size.height == 1 {
-            wgpu::TextureDimension::D1
-        } else {
-            wgpu::TextureDimension::D2
-        }
-    } else {
-        wgpu::TextureDimension::D3
-    }
-}
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_size_dim() {
-        assert_eq!(
-            size_dim(&wgpu::Extent3d {
-                width: 1,
-                height: 1,
-                depth_or_array_layers: 1,
-            }),
-            wgpu::TextureDimension::D1
-        );
-        assert_eq!(
-            size_dim(&wgpu::Extent3d {
-                width: 10,
-                height: 1,
-                depth_or_array_layers: 1,
-            }),
-            wgpu::TextureDimension::D1
-        );
-        assert_eq!(
-            size_dim(&wgpu::Extent3d {
-                width: 10,
-                height: 20,
-                depth_or_array_layers: 1,
-            }),
-            wgpu::TextureDimension::D2
-        );
-        assert_eq!(
-            size_dim(&wgpu::Extent3d {
-                width: 20,
-                height: 10,
-                depth_or_array_layers: 30,
-            }),
-            wgpu::TextureDimension::D3
-        );
     }
 }

@@ -90,6 +90,19 @@ macro_rules! wgpu_inner_deref {
             }
         }
     };
+    ($name: tt <$($gen: tt),*>, $wgpu: tt) => {
+        impl<$($gen),*> ::std::ops::Deref for $name<$($gen),*> {
+            type Target = ::wgpu::$wgpu;
+            fn deref(&self) -> &Self::Target {
+                &self.inner
+            }
+        }
+        impl<$($gen),*> ::std::ops::DerefMut for $name<$($gen),*> {
+            fn deref_mut(&mut self) -> &mut Self::Target {
+                &mut self.inner
+            }
+        }
+    };
     ($name: tt) => {
         // We shouldn't need the `$crate` but it won't compile without it
         $crate::wgpu_inner_deref!($name, $name);

@@ -68,14 +68,22 @@ impl crate::Buffer {
     }
 }
 
-impl crate::Texture {
+impl<D> crate::Texture<D>
+where
+    D: crate::TextureDimensions,
+{
     /// Create a textureview binding.
     pub fn bind_texture(&self) -> Binding {
         Binding {
             visibility: Binding::DEFAULT_VISIBILITY,
             ty: wgpu::BindingType::Texture {
                 sample_type: wgpu::TextureSampleType::Float { filterable: false },
-                view_dimension: wgpu::TextureViewDimension::D2,
+                // TODO: different texture view reps?
+                view_dimension: match self.size.dim() {
+                    wgpu::TextureDimension::D1 => wgpu::TextureViewDimension::D1,
+                    wgpu::TextureDimension::D2 => wgpu::TextureViewDimension::D2,
+                    wgpu::TextureDimension::D3 => wgpu::TextureViewDimension::D3,
+                },
                 multisampled: false,
             },
             resource: wgpu::BindingResource::TextureView(&self.view),
@@ -87,7 +95,12 @@ impl crate::Texture {
         Binding {
             visibility: Binding::DEFAULT_VISIBILITY,
             ty: wgpu::BindingType::StorageTexture {
-                view_dimension: wgpu::TextureViewDimension::D2,
+                // TODO: different texture view reps?
+                view_dimension: match self.size.dim() {
+                    wgpu::TextureDimension::D1 => wgpu::TextureViewDimension::D1,
+                    wgpu::TextureDimension::D2 => wgpu::TextureViewDimension::D2,
+                    wgpu::TextureDimension::D3 => wgpu::TextureViewDimension::D3,
+                },
                 access: wgpu::StorageTextureAccess::ReadWrite,
                 format: self.format,
             },

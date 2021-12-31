@@ -9,7 +9,7 @@ pub struct Egui {
     gpu: GpuHandle,
     vertex_buffers: Vec<(Buffer, Buffer)>,
     ubo_buffer: Buffer,
-    _font_texture: Texture,
+    _font_texture: Texture<crate::D2>,
     _linear_sampler: Sampler,
     bind_group: BindGroup,
     pipeline: RenderPipeline,
@@ -60,11 +60,11 @@ impl Egui {
             pixels.push(srgba.a());
         }
         let font_texture = gpu.new_texture("EGUI font texture").allow_binding().create(
-            &pixels,
-            &[
+            (
                 egui_font_texture.width as u32,
                 egui_font_texture.height as u32,
-            ],
+            ),
+            &pixels,
         );
 
         // Create the linear sampler
