@@ -111,7 +111,7 @@ where
             wgpu::ImageDataLayout {
                 // This is 0 because our source should not be offset
                 offset: 0,
-                bytes_per_row: std::num::NonZeroU32::new(data_bytes.len() as _),
+                bytes_per_row: std::num::NonZeroU32::new(self.size.width() as _),
                 rows_per_image: None,
             },
             size.as_extent(),
@@ -121,7 +121,6 @@ where
     // TODO
     #[allow(unreachable_code)]
     pub fn read_immediately(&self) -> Result<wgpu::util::DownloadBuffer, wgpu::BufferAsyncError> {
-        todo!("Texture::read_immediately :(");
         let format = self.format.describe();
         let texel_count = self.size.width() * self.size.height() * self.size.depth();
         let read_size = texel_count * format.block_size as u32
@@ -273,22 +272,22 @@ impl TextureDimensions for (u32,) {
 }
 
 // TODO
-// #[cfg(test)]
-// mod tests {
-//     #[test]
-//     fn texture_write() {
-//         let data = [10_u32, 20, 30];
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn texture_write() {
+        let data = [10_u32; 99999];
 
-//         let gpu = crate::Gpu::builder().build_headless().unwrap();
-//         let texture = gpu
-//             .new_texture("resize test")
-//             .allow_copy_from()
-//             .create_empty((128, 128));
-//         texture.write((3, 1), &data);
+        let gpu = crate::Gpu::builder().build_headless().unwrap();
+        let texture = gpu
+            .new_texture("resize test")
+            .allow_copy_from()
+            .create_empty((1024, 1024));
+        texture.write((256, 13), &data);
 
-//         let texture_read = texture.read_immediately().unwrap();
-//         let texture_read = bytemuck::cast_slice::<_, u32>(&texture_read);
+        let texture_read = texture.read_immediately().unwrap();
+        let texture_read = bytemuck::cast_slice::<_, u32>(&texture_read);
 
-//         assert_eq!(data, texture_read[..data.len()]);
-//     }
-// }
+        assert_eq!(data, texture_read[..data.len()]);
+    }
+}
