@@ -111,7 +111,9 @@ where
             wgpu::ImageDataLayout {
                 // This is 0 because our source should not be offset
                 offset: 0,
-                bytes_per_row: std::num::NonZeroU32::new(self.size.width() as _),
+                bytes_per_row: std::num::NonZeroU32::new(
+                    self.size.width() * self.format.describe().block_size as u32,
+                ),
                 rows_per_image: None,
             },
             size.as_extent(),
@@ -283,7 +285,7 @@ mod tests {
             .new_texture("resize test")
             .allow_copy_from()
             .create_empty((1024, 1024));
-        texture.write((256, 13), &data);
+        texture.write((256, 23), &data);
 
         let texture_read = texture.read_immediately().unwrap();
         let texture_read = bytemuck::cast_slice::<_, u32>(&texture_read);
