@@ -88,11 +88,11 @@ where
         self.usage = new_usage;
     }
 
-    pub fn write<T>(&self, data: &[T])
+    pub fn write<T>(&self, size: D, data: &[T])
     where
         T: bytemuck::Pod,
     {
-        self.write_block(D::ZEROED, self.size, data)
+        self.write_block(D::ZEROED, size, data)
     }
 
     pub fn write_block<T>(&self, texel: D, size: D, data: &[T])
@@ -104,11 +104,7 @@ where
             wgpu::ImageCopyTextureBase {
                 texture: &self.inner,
                 mip_level: 0,
-                origin: wgpu::Origin3d {
-                    x: texel.width(),
-                    y: texel.height(),
-                    z: texel.depth(),
-                },
+                origin: texel.as_origin(),
                 aspect: wgpu::TextureAspect::All,
             },
             data_bytes,
@@ -126,26 +122,39 @@ where
     #[allow(unreachable_code)]
     pub fn read_immediately(&self) -> Result<wgpu::util::DownloadBuffer, wgpu::BufferAsyncError> {
         todo!("Texture::read_immediately :(");
+        let format = self.format.describe();
         let texel_count = self.size.width() * self.size.height() * self.size.depth();
-        let size = texel_count * self.format.describe().block_size as u32;
+        let read_size = texel_count * format.block_size as u32
+            / (format.block_dimensions.0 as u32 * format.block_dimensions.1 as u32);
+        println!("texel_count: {}, read_size: {}", texel_count, read_size);
         let staging_buf = self
             .gpu
             .new_buffer("texture read staging buffer")
             .allow_copy_to()
             .allow_map_read()
-            .create_uninit(size as _);
-        let mut enc = self
-            .gpu
-            .create_command_encoder("texture read immediately enc");
+            .create_uninit(read_size as _);
+
+        let padded_bytes_per_row = {
+            let bytes_per_pixel = format.block_size as u32;
+            let unpadded_bytes_per_row = self.size.width() * bytes_per_pixel;
+            let align = wgpu::COPY_BYTES_PER_ROW_ALIGNMENT;
+            let padded_bytes_per_row_padding = (align - unpadded_bytes_per_row % align) % align;
+            let padded_bytes_per_row = unpadded_bytes_per_row + padded_bytes_per_row_padding;
+            padded_bytes_per_row
+        };
 
         let staging_copy = wgpu::ImageCopyBuffer {
             buffer: &staging_buf,
             layout: wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: std::num::NonZeroU32::new(size),
-                rows_per_image: std::num::NonZeroU32::new(256),
+                bytes_per_row: std::num::NonZeroU32::new(padded_bytes_per_row),
+                rows_per_image: None,
             },
         };
+
+        let mut enc = self
+            .gpu
+            .create_command_encoder("texture read immediately enc");
 
         enc.copy_texture_to_buffer(
             self.inner.as_image_copy(),
@@ -167,6 +176,7 @@ pub trait TextureDimensions: Copy {
     const ZEROED: Self;
     fn dim(&self) -> wgpu::TextureDimension;
     fn as_extent(&self) -> wgpu::Extent3d;
+    fn as_origin(&self) -> wgpu::Origin3d;
     fn width(&self) -> u32;
     fn height(&self) -> u32;
     fn depth(&self) -> u32;
@@ -182,6 +192,13 @@ impl TextureDimensions for (u32, u32, u32) {
             width: self.0,
             height: self.1,
             depth_or_array_layers: self.2,
+        }
+    }
+    fn as_origin(&self) -> wgpu::Origin3d {
+        wgpu::Origin3d {
+            x: self.0,
+            y: self.1,
+            z: self.2,
         }
     }
     fn width(&self) -> u32 {
@@ -207,6 +224,13 @@ impl TextureDimensions for (u32, u32) {
             depth_or_array_layers: 1,
         }
     }
+    fn as_origin(&self) -> wgpu::Origin3d {
+        wgpu::Origin3d {
+            x: self.0,
+            y: self.1,
+            z: 0,
+        }
+    }
     fn width(&self) -> u32 {
         self.0
     }
@@ -228,6 +252,13 @@ impl TextureDimensions for (u32,) {
             width: self.0,
             height: 1,
             depth_or_array_layers: 1,
+        }
+    }
+    fn as_origin(&self) -> wgpu::Origin3d {
+        wgpu::Origin3d {
+            x: self.0,
+            y: 0,
+            z: 0,
         }
     }
     fn width(&self) -> u32 {
@@ -252,8 +283,8 @@ impl TextureDimensions for (u32,) {
 //         let texture = gpu
 //             .new_texture("resize test")
 //             .allow_copy_from()
-//             .create_empty(&[128, 128]);
-//         texture.write(&data);
+//             .create_empty((128, 128));
+//         texture.write((3, 1), &data);
 
 //         let texture_read = texture.read_immediately().unwrap();
 //         let texture_read = bytemuck::cast_slice::<_, u32>(&texture_read);
