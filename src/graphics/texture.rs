@@ -111,9 +111,7 @@ where
             wgpu::ImageDataLayout {
                 // This is 0 because our source should not be offset
                 offset: 0,
-                bytes_per_row: std::num::NonZeroU32::new(
-                    self.size.width() * self.format.describe().block_size as u32,
-                ),
+                bytes_per_row: std::num::NonZeroU32::new(self.size.width()),
                 rows_per_image: None,
             },
             size.as_extent(),
@@ -135,20 +133,13 @@ where
             .allow_map_read()
             .create_uninit(read_size as _);
 
-        let padded_bytes_per_row = {
-            let bytes_per_pixel = format.block_size as u32;
-            let unpadded_bytes_per_row = self.size.width() * bytes_per_pixel;
-            let align = wgpu::COPY_BYTES_PER_ROW_ALIGNMENT;
-            let padded_bytes_per_row_padding = (align - unpadded_bytes_per_row % align) % align;
-            let padded_bytes_per_row = unpadded_bytes_per_row + padded_bytes_per_row_padding;
-            padded_bytes_per_row
-        };
+        let buffer_dimensions = BufferDimensions::new(self.size.width(), self.size.height());
 
         let staging_copy = wgpu::ImageCopyBuffer {
             buffer: &staging_buf,
             layout: wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: std::num::NonZeroU32::new(padded_bytes_per_row),
+                bytes_per_row: std::num::NonZeroU32::new(buffer_dimensions.padded_bytes_per_row),
                 rows_per_image: None,
             },
         };
@@ -273,19 +264,42 @@ impl TextureDimensions for (u32,) {
     }
 }
 
+struct BufferDimensions {
+    width: u32,
+    height: u32,
+    unpadded_bytes_per_row: u32,
+    padded_bytes_per_row: u32,
+}
+
+impl BufferDimensions {
+    fn new(width: u32, height: u32) -> Self {
+        let bytes_per_pixel = std::mem::size_of::<u32>();
+        let unpadded_bytes_per_row = width * bytes_per_pixel as u32;
+        let align = wgpu::COPY_BYTES_PER_ROW_ALIGNMENT;
+        let padded_bytes_per_row_padding = (align - unpadded_bytes_per_row % align) % align;
+        let padded_bytes_per_row = unpadded_bytes_per_row + padded_bytes_per_row_padding;
+        Self {
+            width,
+            height,
+            unpadded_bytes_per_row,
+            padded_bytes_per_row,
+        }
+    }
+}
+
 // TODO
 #[cfg(test)]
 mod tests {
     #[test]
     fn texture_write() {
-        let data = [10_u32; 99999];
+        let data = [10_u32; 256 * 13];
 
         let gpu = crate::Gpu::builder().build_headless().unwrap();
         let texture = gpu
             .new_texture("resize test")
             .allow_copy_from()
             .create_empty((1024, 1024));
-        texture.write((256, 23), &data);
+        texture.write((256, 13), &data);
 
         let texture_read = texture.read_immediately().unwrap();
         let texture_read = bytemuck::cast_slice::<_, u32>(&texture_read);
