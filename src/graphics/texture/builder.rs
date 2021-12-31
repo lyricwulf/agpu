@@ -70,6 +70,8 @@ impl TextureBuilder<'_> {
             inner: texture,
             view,
             format: self.texture.format,
+            size: self.texture.size,
+            usage: self.texture.usage,
         }
     }
 
@@ -100,6 +102,8 @@ impl TextureBuilder<'_> {
             inner: texture,
             view,
             format: self.texture.format,
+            size: self.texture.size,
+            usage: self.texture.usage,
         }
     }
 
@@ -136,6 +140,8 @@ impl TextureBuilder<'_> {
             inner: texture,
             view,
             format: self.texture.format,
+            size: self.texture.size,
+            usage: self.texture.usage,
         }
     }
 
@@ -229,7 +235,7 @@ where
     std::slice::from_raw_parts(data.as_ptr() as *const T, data.len() * data[0].len())
 }
 
-const fn size_dim(size: &wgpu::Extent3d) -> wgpu::TextureDimension {
+pub const fn size_dim(size: &wgpu::Extent3d) -> wgpu::TextureDimension {
     if size.depth_or_array_layers == 1 {
         if size.height == 1 {
             wgpu::TextureDimension::D1
