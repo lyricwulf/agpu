@@ -89,12 +89,22 @@ impl Texture {
     {
         let data_bytes = bytemuck::cast_slice::<_, u8>(data);
         self.gpu.queue.write_texture(
-            self.inner.as_image_copy(),
+            wgpu::ImageCopyTextureBase {
+                texture: &self.inner,
+                mip_level: 0,
+                origin: wgpu::Origin3d {
+                    x: offset as _,
+                    y: 0,
+                    z: 0,
+                },
+                aspect: wgpu::TextureAspect::All,
+            },
             data_bytes,
             wgpu::ImageDataLayout {
-                offset,
+                // This is 0 because our source should not be offset
+                offset: 0,
                 bytes_per_row: std::num::NonZeroU32::new(data_bytes.len() as _),
-                rows_per_image: std::num::NonZeroU32::new(1),
+                rows_per_image: None,
             },
             wgpu::Extent3d {
                 width: data_bytes.len() as u32 / self.format.describe().block_size as u32,
