@@ -104,6 +104,16 @@ impl Texture {
         )
     }
 
+    pub fn write_at_texel<T>(&self, offset: wgpu::BufferAddress, data: &[T])
+    where
+        T: bytemuck::Pod,
+    {
+        self.write_at(
+            offset * self.format.describe().block_size as wgpu::BufferAddress,
+            data,
+        )
+    }
+
     // TODO
     #[allow(unreachable_code)]
     pub fn read_immediately(&self) -> Result<wgpu::util::DownloadBuffer, wgpu::BufferAsyncError> {
