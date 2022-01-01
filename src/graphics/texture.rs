@@ -267,6 +267,7 @@ impl TextureDimensions for (u32,) {
     }
 }
 
+#[allow(unused)]
 struct BufferDimensions {
     width: u32,
     height: u32,
