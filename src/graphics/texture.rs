@@ -75,13 +75,21 @@ where
             usage: new_usage,
         });
 
-        let mut enc = self.gpu.create_command_encoder("Texture resize encoder");
-        enc.copy_texture_to_texture(
-            self.inner.as_image_copy(),
-            new_texture.as_image_copy(),
-            self.size.as_extent(),
-        );
-        self.gpu.queue.submit([enc.finish()]);
+        // Don't resize depth buffer! (InvalidDepthTextureExtent)
+        match self.format {
+            wgpu::TextureFormat::Depth32Float
+            | wgpu::TextureFormat::Depth24Plus
+            | wgpu::TextureFormat::Depth24PlusStencil8 => {}
+            _ => {
+                let mut enc = self.gpu.create_command_encoder("Texture resize encoder");
+                enc.copy_texture_to_texture(
+                    self.inner.as_image_copy(),
+                    new_texture.as_image_copy(),
+                    self.size.as_extent(),
+                );
+                self.gpu.queue.submit([enc.finish()]);
+            }
+        }
 
         self.inner = new_texture;
         self.size = size;
@@ -292,40 +300,40 @@ impl BufferDimensions {
 }
 
 // TODO
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn texture_write() {
-        let data = [10_u32; 212 * 13];
+// #[cfg(test)]
+// mod tests {
+//     #[test]
+//     fn texture_write() {
+//         let data = [10_u32; 212 * 13];
 
-        let gpu = crate::Gpu::builder().build_headless().unwrap();
-        let texture = gpu
-            .new_texture("resize test")
-            .allow_copy_from()
-            .create_empty((1024, 1024));
-        texture.write((212, 13), &data);
+//         let gpu = crate::Gpu::builder().build_headless().unwrap();
+//         let texture = gpu
+//             .new_texture("resize test")
+//             .allow_copy_from()
+//             .create_empty((1024, 1024));
+//         texture.write((212, 13), &data);
 
-        // let texture_read = texture.read_immediately().unwrap();
-        // let texture_read = bytemuck::cast_slice::<_, u8>(&texture_read);
+//         // let texture_read = texture.read_immediately().unwrap();
+//         // let texture_read = bytemuck::cast_slice::<_, u8>(&texture_read);
 
-        // assert_eq!(data, texture_read[..data.len()]);
-    }
+//         // assert_eq!(data, texture_read[..data.len()]);
+//     }
 
-    #[test]
-    fn texture_write_u8() {
-        let data = [10_u8; 212 * 13];
+//     #[test]
+//     fn texture_write_u8() {
+//         let data = [10_u8; 212 * 13];
 
-        let gpu = crate::Gpu::builder().build_headless().unwrap();
-        let texture = gpu
-            .new_texture("resize test")
-            .allow_copy_from()
-            .with_format(crate::TextureFormat::R8Unorm)
-            .create_empty((1024, 1024));
-        texture.write((212, 13), &data);
+//         let gpu = crate::Gpu::builder().build_headless().unwrap();
+//         let texture = gpu
+//             .new_texture("resize test")
+//             .allow_copy_from()
+//             .with_format(crate::TextureFormat::R8Unorm)
+//             .create_empty((1024, 1024));
+//         texture.write((212, 13), &data);
 
-        // let texture_read = texture.read_immediately().unwrap();
-        // let texture_read = bytemuck::cast_slice::<_, u8>(&texture_read);
+//         // let texture_read = texture.read_immediately().unwrap();
+//         // let texture_read = bytemuck::cast_slice::<_, u8>(&texture_read);
 
-        // assert_eq!(data, texture_read[..data.len()]);
-    }
-}
+//         // assert_eq!(data, texture_read[..data.len()]);
+//     }
+// }
