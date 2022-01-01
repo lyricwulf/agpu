@@ -56,11 +56,29 @@ impl Buffer {
         T: bytemuck::Pod,
     {
         let data = bytemuck::cast_slice(data);
-        // If the buffer is too small, it will be resized
-        if self.size < data.len() as _ {
-            self.resize_impl(data.len() as _, false);
-        }
-        self.gpu.queue.write_buffer(&self.inner, 0, data);
+
+        self.resize_if_smaller(data.len() as u64, true);
+        self.write_impl(0, data);
+    }
+
+    /// Writes to the buffer at the given byte offset
+    pub fn write_at<T>(&mut self, offset: u64, data: &[T])
+    where
+        T: bytemuck::Pod,
+    {
+        let data = bytemuck::cast_slice(data);
+        self.resize_if_smaller(offset + data.len() as u64, true);
+        self.write_impl(offset, data);
+    }
+
+    /// Convenince function for writing at an index of the buffer
+    /// (multiple of the data size)
+    pub fn write_index<T>(&mut self, index: u64, data: &[T])
+    where
+        T: bytemuck::Pod,
+    {
+        let offset = index * std::mem::size_of::<T>() as u64;
+        self.write_at(offset, data);
     }
 
     // Writes the data to the buffer
@@ -70,11 +88,46 @@ impl Buffer {
         T: bytemuck::Pod,
     {
         let data = bytemuck::cast_slice(data);
-        self.gpu.queue.write_buffer(&self.inner, 0, data);
+        self.write_impl(0, data);
     }
 
-    fn resize_impl(&mut self, size: u64, copy_contents: bool) {
-        if copy_contents {
+    /// Writes to the buffer at the given byte offset
+    pub fn write_at_unchecked<T>(&mut self, offset: u64, data: &[T])
+    where
+        T: bytemuck::Pod,
+    {
+        let data = bytemuck::cast_slice(data);
+        self.write_impl(offset, data);
+    }
+
+    /// Convenince function for writing at an index of the buffer
+    /// (multiple of the data size)
+    pub fn write_index_unchecked<T>(&mut self, index: u64, data: &[T])
+    where
+        T: bytemuck::Pod,
+    {
+        let offset = index * std::mem::size_of::<T>() as u64;
+        self.write_at_unchecked(offset, data);
+    }
+
+    fn write_impl(&self, offset: u64, data: &[u8]) {
+        self.gpu.queue.write_buffer(&self.inner, offset, data);
+    }
+
+    // If the buffer is too small, resize it
+    fn resize_if_smaller(&mut self, size: u64, copy: bool) -> bool {
+        if self.size >= size {
+            return false;
+        }
+        self.resize_impl(size, copy);
+        true
+    }
+
+    /// Resizes the buffer (does not check if the buffer is bigger)
+    /// Currently the encoder is immediately submitted which may cause a
+    /// performance hit
+    fn resize_impl(&mut self, size: u64, copy: bool) {
+        if copy {
             self.usages |= wgpu::BufferUsages::COPY_DST
         };
         // Create the new buffer
@@ -84,7 +137,7 @@ impl Buffer {
             usage: self.usages,
             mapped_at_creation: false,
         });
-        if copy_contents {
+        if copy {
             // Copy the contents of the old buffer to the new buffer
             let mut encoder = self
                 .gpu
