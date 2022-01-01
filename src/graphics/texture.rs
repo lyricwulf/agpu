@@ -91,9 +91,13 @@ where
             }
         }
 
+        // Create a new view
+        let view = new_texture.create_view(&Default::default());
+
         self.inner = new_texture;
         self.size = size;
         self.usage = new_usage;
+        self.view = view;
     }
 
     pub fn write<T>(&self, size: D, data: &[T])
