@@ -102,8 +102,8 @@ impl Sampler {
         // maybe doesn't necessarily mean that we will bind it as such
         let ty = match (self.comparison, self.filtering) {
             (true, _) => wgpu::SamplerBindingType::Comparison,
-            (false, true) => wgpu::SamplerBindingType::NonFiltering,
-            (false, false) => wgpu::SamplerBindingType::Filtering,
+            (false, true) => wgpu::SamplerBindingType::Filtering,
+            (false, false) => wgpu::SamplerBindingType::NonFiltering,
         };
 
         Binding {
