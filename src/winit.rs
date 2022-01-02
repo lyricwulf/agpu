@@ -111,7 +111,7 @@ impl GpuProgram {
     where
         F: 'static + FnMut(Frame<'_>),
     {
-        self.run(move |event, _, _| {
+        self.run(move |event, _, _, _| {
             if let Event::RedrawFrame(frame) = event {
                 op(frame);
             }
@@ -129,6 +129,7 @@ impl GpuProgram {
         F: 'static
             + FnMut(
                 Event<'_, ()>,
+                &Self,
                 &winit::event_loop::EventLoopWindowTarget<()>,
                 &mut winit::event_loop::ControlFlow,
             ),
@@ -171,13 +172,14 @@ impl GpuProgram {
                     // We manually call the event handler. This returns out of the closure iteration
                     winit::event::Event::RedrawRequested(w) => {
                         if let Some(new_size) = *self.viewport.resize_to.borrow() {
-                            event_handler(Event::Resize(new_size), event_loop, control_flow);
+                            event_handler(Event::Resize(new_size), &self, event_loop, control_flow);
                         };
 
                         // We first call the event handler with the original event,
                         // in case the user wants to perform some operations before creating the Frame
                         event_handler(
                             Event::Winit(winit::event::Event::RedrawRequested(w)),
+                            &self,
                             event_loop,
                             control_flow,
                         );
@@ -199,7 +201,7 @@ impl GpuProgram {
                         };
 
                         // Then we call the event handler with the frame
-                        event_handler(Event::RedrawFrame(frame), event_loop, control_flow);
+                        event_handler(Event::RedrawFrame(frame), &self, event_loop, control_flow);
 
                         // Return early so we don't call the event handler twice (once from 2 above)
                         return;
@@ -207,7 +209,7 @@ impl GpuProgram {
                     _ => {}
                 }
                 let event = Event::Winit(event);
-                event_handler(event, event_loop, control_flow);
+                event_handler(event, &self, event_loop, control_flow);
             })
     }
 
