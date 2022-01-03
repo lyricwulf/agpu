@@ -1,3 +1,6 @@
+use tracing::warn;
+pub use wgpu::CompareFunction;
+
 use std::borrow::Cow;
 
 use wgpu::ShaderModuleDescriptor;
@@ -171,21 +174,41 @@ impl<'a> PipelineBuilder<'a> {
         self
     }
 
+    fn do_depth<F>(&mut self, op: F)
+    where
+        F: FnOnce(&mut wgpu::DepthStencilState),
+    {
+        if let Some(desc) = self.desc.depth_stencil.as_mut() {
+            op(desc);
+        } else {
+            warn!("Depth mod was called before with_depth() was called in pipeline builder");
+        }
+    }
+
     /// Add a constant depth biasing factor, in basic units of the depth format.
     /// Add a slope depth biasing factor.
     /// TODO: Clarify what this means??
     pub fn depth_bias(mut self, constant: i32, slope: f32) -> Self {
-        if let Some(desc) = self.desc.depth_stencil.as_mut() {
+        self.do_depth(|desc| {
             desc.bias.constant = constant;
             desc.bias.slope_scale = slope;
-        }
+        });
         self
     }
     /// Add a depth bias clamp value (absolute).
     pub fn depth_bias_clamp(mut self, clamp: f32) -> Self {
-        if let Some(desc) = self.desc.depth_stencil.as_mut() {
+        self.do_depth(|desc| {
             desc.bias.clamp = clamp;
-        }
+        });
+        self
+    }
+
+    /// Set the depth comparison function
+    /// Values testing `true` will pass the depth test
+    pub fn depth_compare(mut self, compare: CompareFunction) -> Self {
+        self.do_depth(|desc| {
+            desc.depth_compare = compare;
+        });
         self
     }
 
