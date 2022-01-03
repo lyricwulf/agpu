@@ -161,6 +161,12 @@ impl<'a> PipelineBuilder<'a> {
         self
     }
 
+    /// Set the fragment layouts
+    pub fn with_fragment_targets(mut self, targets: &'a [wgpu::ColorTargetState]) -> Self {
+        self.fragment_targets = targets;
+        self
+    }
+
     /// Declare a depth state for the pipeline. MUST be called if the pipeline is
     /// set for a render pass with depth attachment
     pub fn with_depth(mut self) -> Self {
