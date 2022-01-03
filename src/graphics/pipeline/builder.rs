@@ -158,6 +158,8 @@ impl<'a> PipelineBuilder<'a> {
         self
     }
 
+    /// Declare a depth state for the pipeline. MUST be called if the pipeline is
+    /// set for a render pass with depth attachment
     pub fn with_depth(mut self) -> Self {
         self.desc.depth_stencil = Some(wgpu::DepthStencilState {
             depth_write_enabled: true,
@@ -166,6 +168,24 @@ impl<'a> PipelineBuilder<'a> {
             format: wgpu::TextureFormat::Depth32Float,
             bias: wgpu::DepthBiasState::default(),
         });
+        self
+    }
+
+    /// Add a constant depth biasing factor, in basic units of the depth format.
+    /// Add a slope depth biasing factor.
+    /// TODO: Clarify what this means??
+    pub fn depth_bias(mut self, constant: i32, slope: f32) -> Self {
+        if let Some(desc) = self.desc.depth_stencil.as_mut() {
+            desc.bias.constant = constant;
+            desc.bias.slope_scale = slope;
+        }
+        self
+    }
+    /// Add a depth bias clamp value (absolute).
+    pub fn depth_bias_clamp(mut self, clamp: f32) -> Self {
+        if let Some(desc) = self.desc.depth_stencil.as_mut() {
+            desc.bias.clamp = clamp;
+        }
         self
     }
 
