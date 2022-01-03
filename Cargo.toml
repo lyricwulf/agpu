@@ -45,4 +45,4 @@ tracing-subscriber = "0.3"
 # egui example
 egui-winit = { git = "https://github.com/emilk/egui", rev = "ee002145117df5be9c8889bfbcf569f3493dec79" }
 # math lib for examples
-nalgebra = "0.29"
+nalgebra = "0.30"
