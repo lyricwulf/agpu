@@ -60,7 +60,30 @@ where
     //     }
     // }
 
+    /// Resize the texture. Old contents are discarded (see resize_and_copy)
     pub fn resize(&mut self, size: D) {
+        let new_texture = self.gpu.create_texture(&wgpu::TextureDescriptor {
+            // TODO: update label for texture on resize
+            label: None,
+            size: size.as_extent(),
+            // TODO: mip level count on resize??
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: size.dim(),
+            format: self.format,
+            usage: self.usage,
+        });
+
+        // Create a new view
+        let view = new_texture.create_view(&Default::default());
+
+        self.inner = new_texture;
+        self.size = size;
+        self.view = view;
+    }
+
+    /// Resize the texture and copy the contents
+    pub fn resize_with_copy(&mut self, size: D) {
         let new_usage = self.usage | wgpu::TextureUsages::COPY_DST;
 
         let new_texture = self.gpu.create_texture(&wgpu::TextureDescriptor {
@@ -75,7 +98,7 @@ where
             usage: new_usage,
         });
 
-        // Don't resize depth buffer! (InvalidDepthTextureExtent)
+        // Don't copy depth buffer! (InvalidDepthTextureExtent)
         match self.format {
             wgpu::TextureFormat::Depth32Float
             | wgpu::TextureFormat::Depth24Plus
