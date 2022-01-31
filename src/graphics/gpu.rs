@@ -98,6 +98,7 @@ impl GpuHandle {
         CommandEncoder {
             inner: ManuallyDrop::new(inner),
             gpu: self.clone(),
+            finished: false,
         }
     }
 
@@ -145,10 +146,12 @@ impl Deref for GpuHandle {
 
 pub struct CommandEncoder {
     inner: ManuallyDrop<wgpu::CommandEncoder>,
+    finished: bool,
     pub(crate) gpu: GpuHandle,
 }
 impl CommandEncoder {
     pub fn finish(mut self) -> wgpu::CommandBuffer {
+        self.finished = true;
         unsafe { ManuallyDrop::take(&mut self.inner).finish() }
     }
 }
@@ -166,7 +169,9 @@ impl DerefMut for CommandEncoder {
 
 impl Drop for CommandEncoder {
     fn drop(&mut self) {
-        let inner = unsafe { ManuallyDrop::take(&mut self.inner) };
-        self.gpu.queue.submit([inner.finish()]);
+        if !self.finished {
+            let inner = unsafe { ManuallyDrop::take(&mut self.inner) };
+            self.gpu.queue.submit([inner.finish()]);
+        }
     }
 }
