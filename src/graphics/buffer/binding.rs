@@ -73,6 +73,7 @@ where
     D: crate::TextureDimensions,
 {
     /// Create a textureview binding.
+    // Can be const following RFC 2632
     pub fn bind_texture(&self) -> Binding {
         Binding {
             visibility: Binding::DEFAULT_VISIBILITY,
@@ -90,7 +91,14 @@ where
         }
     }
 
-    // Create a storage texture binding.
+    /// Alias for `bind_texture()`.
+    // Can be const following RFC 2632
+    pub fn bind(&self) -> Binding {
+        self.bind_texture()
+    }
+
+    /// Create a storage texture binding.
+    // Can be const following RFC 2632
     pub fn bind_storage_texture(&self) -> Binding {
         Binding {
             visibility: Binding::DEFAULT_VISIBILITY,
