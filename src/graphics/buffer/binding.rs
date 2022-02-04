@@ -184,6 +184,7 @@ impl Binding<'_> {
     }
 }
 
+#[derive(Debug)]
 pub struct BindGroup {
     pub layout: wgpu::BindGroupLayout,
     pub inner: wgpu::BindGroup,
