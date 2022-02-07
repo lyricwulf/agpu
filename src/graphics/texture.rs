@@ -12,6 +12,19 @@ use crate::GpuHandle;
 // Re-export TextureFormat
 pub use wgpu::TextureFormat;
 
+pub trait TextureFormatExt {
+    fn target(&self) -> wgpu::ColorTargetState;
+}
+impl TextureFormatExt for TextureFormat {
+    fn target(&self) -> wgpu::ColorTargetState {
+        wgpu::ColorTargetState {
+            format: *self,
+            blend: None,
+            write_mask: wgpu::ColorWrites::ALL,
+        }
+    }
+}
+
 pub struct Texture<D>
 where
     D: TextureDimensions,
