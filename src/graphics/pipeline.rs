@@ -1,7 +1,7 @@
 use crate::GpuHandle;
 
 mod builder;
-pub use builder::PipelineBuilder;
+pub use builder::*;
 
 pub struct RenderPipeline {
     pub gpu: GpuHandle,
