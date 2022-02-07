@@ -11,6 +11,53 @@ use crate::GpuHandle;
 
 use crate::RenderPipeline;
 
+pub trait ColorTargetBuilderExt {
+    fn blend_over(self) -> Self;
+    fn blend_over_premult(self) -> Self;
+    fn blend_add(self) -> Self;
+    fn blend_subtract(self) -> Self;
+    fn write_mask(self, mask: u32) -> Self;
+}
+impl ColorTargetBuilderExt for wgpu::ColorTargetState {
+    fn blend_over(mut self) -> Self {
+        self.blend = Some(wgpu::BlendState::ALPHA_BLENDING);
+        self
+    }
+    fn blend_over_premult(mut self) -> Self {
+        self.blend = Some(wgpu::BlendState::PREMULTIPLIED_ALPHA_BLENDING);
+        self
+    }
+
+    fn blend_add(mut self) -> Self {
+        self.blend = Some(wgpu::BlendState {
+            color: wgpu::BlendComponent {
+                src_factor: wgpu::BlendFactor::SrcAlpha,
+                dst_factor: wgpu::BlendFactor::SrcAlpha,
+                operation: wgpu::BlendOperation::Add,
+            },
+            alpha: wgpu::BlendComponent::OVER,
+        });
+        self
+    }
+
+    fn blend_subtract(mut self) -> Self {
+        self.blend = Some(wgpu::BlendState {
+            color: wgpu::BlendComponent {
+                src_factor: wgpu::BlendFactor::SrcAlpha,
+                dst_factor: wgpu::BlendFactor::SrcAlpha,
+                operation: wgpu::BlendOperation::Subtract,
+            },
+            alpha: wgpu::BlendComponent::OVER,
+        });
+        self
+    }
+
+    fn write_mask(mut self, mask: u32) -> Self {
+        self.write_mask = wgpu::ColorWrites::from_bits(mask).unwrap();
+        self
+    }
+}
+
 pub struct PipelineBuilder<'a> {
     /// Handle to the Gpu
     gpu: GpuHandle,
