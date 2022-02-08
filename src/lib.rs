@@ -20,8 +20,7 @@ pub(crate) mod macros;
 pub_const_flag!(
     QUERYSET_BUFFER_USAGE,
     wgpu::BufferUsages,
-    MAP_READ,
-    COPY_DST
+    MAP_READ | COPY_DST
 );
 
 #[cfg(feature = "winit")]
