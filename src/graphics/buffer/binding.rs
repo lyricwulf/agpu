@@ -235,7 +235,7 @@ impl crate::Gpu {
 }
 
 /// Returns the binding sample type for a texture format.
-const fn sample_type(format: wgpu::TextureFormat) -> wgpu::TextureSampleType {
+pub(crate) const fn sample_type(format: wgpu::TextureFormat) -> wgpu::TextureSampleType {
     // Sample Types
     const UINT: wgpu::TextureSampleType = wgpu::TextureSampleType::Uint;
     const SINT: wgpu::TextureSampleType = wgpu::TextureSampleType::Sint;
