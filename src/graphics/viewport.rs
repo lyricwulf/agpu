@@ -9,7 +9,7 @@ pub use render_pass::*;
 
 use std::{cell::RefCell, ops::Deref};
 
-use crate::{GpuError, GpuHandle, Texture};
+use crate::{bitor, GpuError, GpuHandle, Texture};
 
 pub trait BeginRenderFrame {
     fn begin_frame(&self) -> Result<Frame, GpuError>;
@@ -49,7 +49,9 @@ impl<'a> Viewport {
         window: winit::window::Window,
     ) -> Self {
         let sc_desc = wgpu::SurfaceConfiguration {
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            usage: bitor!(
+                wgpu::TextureUsages: COPY_SRC | COPY_DST | TEXTURE_BINDING | RENDER_ATTACHMENT
+            ),
             format,
             width,
             height,

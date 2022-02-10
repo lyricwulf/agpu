@@ -5,6 +5,7 @@ pub struct ViewportBuilder {
     pub gpu: GpuHandle,
     pub window: Window,
     pub format: Option<wgpu::TextureFormat>,
+    pub usages: wgpu::TextureUsages,
 }
 impl<'a> ViewportBuilder {
     pub fn new(gpu: GpuHandle, window: Window) -> Self {
@@ -12,11 +13,17 @@ impl<'a> ViewportBuilder {
             gpu,
             window,
             format: None,
+            usages: wgpu::TextureUsages::empty(),
         }
     }
 
     pub fn with_format(mut self, format: wgpu::TextureFormat) -> Self {
         self.format = Some(format);
+        self
+    }
+
+    pub fn with_usages(mut self, usages: wgpu::TextureUsages) -> Self {
+        self.usages = usages;
         self
     }
 

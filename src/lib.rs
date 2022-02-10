@@ -17,11 +17,7 @@ pub use half::{bf16, f16};
 
 pub(crate) mod macros;
 
-pub_const_flag!(
-    QUERYSET_BUFFER_USAGE,
-    wgpu::BufferUsages,
-    MAP_READ | COPY_DST
-);
+pub_const_flag!(QUERYSET_BUFFER_USAGE: wgpu::BufferUsages = MAP_READ | COPY_DST);
 
 #[cfg(feature = "winit")]
 pub mod winit;
