@@ -29,3 +29,9 @@ impl TextureView {
         }
     }
 }
+
+impl From<wgpu::TextureView> for TextureView {
+    fn from(inner: wgpu::TextureView) -> Self {
+        TextureView { inner }
+    }
+}

@@ -13,8 +13,8 @@ pub struct Frame<'a> {
     /// ManuallyDrop because we call `.present()` on it to present to screen
     surface_texture: ManuallyDrop<wgpu::SurfaceTexture>,
     /// The Optional depth texture
-    pub depth_texture: wgpu::TextureView,
-    pub view: wgpu::TextureView,
+    pub depth_texture: crate::TextureView,
+    pub view: crate::TextureView,
     pub encoder: ManuallyDrop<CommandEncoder>,
     pub delta_time: Option<f32>,
 }
@@ -99,8 +99,8 @@ impl<'a> Frame<'a> {
         Ok(Frame {
             gpu,
             surface_texture: ManuallyDrop::new(frame),
-            depth_texture: depth,
-            view: frame_view,
+            depth_texture: depth.into(),
+            view: frame_view.into(),
             encoder: ManuallyDrop::new(encoder),
             delta_time: None,
         })
