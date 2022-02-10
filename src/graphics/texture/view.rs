@@ -28,6 +28,11 @@ impl TextureView {
             },
         }
     }
+
+    /// Since traits are not const we have this to Deref const
+    pub const fn deref_const(&self) -> &wgpu::TextureView {
+        &self.inner
+    }
 }
 
 impl From<wgpu::TextureView> for TextureView {
