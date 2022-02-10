@@ -202,6 +202,13 @@ impl<'a> PipelineBuilder<'a> {
             }],
         }
     }
+
+    /// Set the label
+    pub fn with_label(mut self, label: &'a str) -> Self {
+        self.label = Some(label);
+        self
+    }
+
     /// Set the vertex buffer layouts
     pub fn with_vertex_layouts(mut self, layouts: &'a [wgpu::VertexBufferLayout<'a>]) -> Self {
         self.desc.vertex_layouts = layouts;
