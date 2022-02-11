@@ -1,5 +1,6 @@
 use std::{
     cell::{Cell, RefCell},
+    fmt::Debug,
     mem::size_of,
 };
 
@@ -21,6 +22,7 @@ pub const PIPELINE_STATISTICS_LABELS: [&str; 5] = [
     "Compute shader invocations",
 ];
 
+#[derive(Debug)]
 pub struct Profiler {
     /// 64-bit number indicating the GPU-timestamp where all previous commands have finished executing
     pub(crate) timestamp: Option<QuerySet>,

@@ -18,6 +18,7 @@ use winit::window::Window;
 /// You can manually construct this with fields but it is recommended to use the [builder].
 ///
 /// [builder]: Gpu::builder()
+#[derive(Debug)]
 pub struct Gpu {
     /// This is the instance for wgpu itself. We shouldn't need more than 1 in the
     /// life of a program.
@@ -64,7 +65,7 @@ impl Deref for Gpu {
 /// Because this is a `Rc`, it will automatically be freed when there are no
 /// more references to it. It follows that any struct with a `GpuHandle` will be
 /// always be guaranteed a valid reference to the `Gpu`.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct GpuHandle {
     context: Rc<Gpu>,
 }

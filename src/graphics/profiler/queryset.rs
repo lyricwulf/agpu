@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use std::{mem::size_of, ops::Deref};
 
 use futures::executor::block_on;
@@ -15,6 +16,12 @@ impl Deref for QuerySet {
     type Target = wgpu::QuerySet;
     fn deref(&self) -> &Self::Target {
         &self.inner
+    }
+}
+
+impl Debug for QuerySet {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "agpu QuerySet")
     }
 }
 
