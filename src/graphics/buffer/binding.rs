@@ -215,7 +215,7 @@ impl BindGroupLayout {
             .device
             .create_bind_group(&wgpu::BindGroupDescriptor {
                 label: None,
-                layout: &self,
+                layout: self,
                 entries: bindings
                     .iter()
                     .enumerate()
