@@ -14,13 +14,13 @@ impl TextureView {
                 view_dimension: wgpu::TextureViewDimension::D2,
                 multisampled: false,
             },
-            resource: wgpu::BindingResource::TextureView(&self),
+            resource: wgpu::BindingResource::TextureView(self),
         }
     }
 
     pub fn attach_render(&self) -> crate::RenderAttachment<'_> {
         wgpu::RenderPassColorAttachment {
-            view: &self,
+            view: self,
             resolve_target: None,
             ops: wgpu::Operations {
                 load: wgpu::LoadOp::Load,

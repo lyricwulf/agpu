@@ -347,7 +347,7 @@ pub type DepthAttachment<'a> = wgpu::RenderPassDepthStencilAttachment<'a>;
 impl Frame<'_> {
     pub const fn attach_render(&self) -> RenderAttachment<'_> {
         wgpu::RenderPassColorAttachment {
-            view: &self.view.deref_const(),
+            view: self.view.deref_const(),
             resolve_target: None,
             ops: wgpu::Operations {
                 load: wgpu::LoadOp::Load,
@@ -358,7 +358,7 @@ impl Frame<'_> {
 
     pub const fn attach_depth(&self) -> DepthAttachment<'_> {
         wgpu::RenderPassDepthStencilAttachment {
-            view: &self.depth_texture.deref_const(),
+            view: self.depth_texture.deref_const(),
             depth_ops: Some(wgpu::Operations {
                 load: wgpu::LoadOp::Load,
                 store: true,
@@ -369,7 +369,7 @@ impl Frame<'_> {
 
     pub const fn attach_stencil(&self) -> DepthAttachment<'_> {
         wgpu::RenderPassDepthStencilAttachment {
-            view: &self.depth_texture.deref_const(),
+            view: self.depth_texture.deref_const(),
             depth_ops: None,
             stencil_ops: Some(wgpu::Operations {
                 load: wgpu::LoadOp::Load,
@@ -380,7 +380,7 @@ impl Frame<'_> {
 
     pub const fn attach_depth_stencil(&self) -> DepthAttachment<'_> {
         wgpu::RenderPassDepthStencilAttachment {
-            view: &self.depth_texture.deref_const(),
+            view: self.depth_texture.deref_const(),
             depth_ops: Some(wgpu::Operations {
                 load: wgpu::LoadOp::Load,
                 store: true,
