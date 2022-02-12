@@ -1,4 +1,8 @@
+use std::{ops::Deref, rc::Rc};
+
 use wgpu::BindGroupEntry;
+
+use crate::GpuHandle;
 
 impl crate::Buffer {
     /// Create a uniform buffer binding.
@@ -184,10 +188,57 @@ impl Binding<'_> {
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct BindGroupLayout {
+    gpu: GpuHandle,
+    inner: Rc<wgpu::BindGroupLayout>,
+}
+impl Deref for BindGroupLayout {
+    type Target = wgpu::BindGroupLayout;
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+impl BindGroupLayout {
+    pub fn from_wgpu(gpu: GpuHandle, layout: wgpu::BindGroupLayout) -> Self {
+        Self {
+            gpu,
+            inner: Rc::new(layout),
+        }
+    }
+    pub fn inner(&self) -> &wgpu::BindGroupLayout {
+        &self.inner
+    }
+    pub fn create_bind_group(&self, bindings: &[Binding]) -> BindGroup {
+        let bind_group = self
+            .gpu
+            .device
+            .create_bind_group(&wgpu::BindGroupDescriptor {
+                label: None,
+                layout: &self,
+                entries: bindings
+                    .iter()
+                    .enumerate()
+                    .map(|(i, b)| BindGroupEntry {
+                        binding: i as _,
+                        resource: b.resource.clone(),
+                    })
+                    .collect::<Vec<_>>()
+                    .as_slice(),
+            });
+
+        BindGroup {
+            gpu: self.gpu.clone(),
+            layout: self.clone(),
+            inner: bind_group,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct BindGroup {
     gpu: crate::GpuHandle,
-    pub layout: wgpu::BindGroupLayout,
+    pub layout: BindGroupLayout,
     pub inner: wgpu::BindGroup,
 }
 crate::wgpu_inner_deref!(BindGroup);
@@ -222,40 +273,40 @@ impl BindGroup {
                 .collect::<Vec<_>>()
                 .as_slice(),
         });
+        let layout = BindGroupLayout::from_wgpu(gpu.clone(), bind_group_layout);
 
         BindGroup {
             gpu,
-            layout: bind_group_layout,
+            layout,
             inner: bind_group,
         }
     }
 
-    // TODO: Somehow it would be nice to have this?
     // Creates a new bind group with the same layout as this one, but with the given bindings.
-    // pub fn instance(&self, bindings: &[Binding]) -> Self {
-    //     let bind_group = self
-    //         .gpu
-    //         .device
-    //         .create_bind_group(&wgpu::BindGroupDescriptor {
-    //             label: None,
-    //             layout: &self.layout,
-    //             entries: bindings
-    //                 .iter()
-    //                 .enumerate()
-    //                 .map(|(i, b)| BindGroupEntry {
-    //                     binding: i as _,
-    //                     resource: b.resource.clone(),
-    //                 })
-    //                 .collect::<Vec<_>>()
-    //                 .as_slice(),
-    //         });
+    pub fn instance(&self, bindings: &[Binding]) -> Self {
+        let bind_group = self
+            .gpu
+            .device
+            .create_bind_group(&wgpu::BindGroupDescriptor {
+                label: None,
+                layout: &self.layout,
+                entries: bindings
+                    .iter()
+                    .enumerate()
+                    .map(|(i, b)| BindGroupEntry {
+                        binding: i as _,
+                        resource: b.resource.clone(),
+                    })
+                    .collect::<Vec<_>>()
+                    .as_slice(),
+            });
 
-    //     BindGroup {
-    //         gpu: self.gpu.clone(),
-    //         layout: self.layout.clone(),
-    //         inner: bind_group,
-    //     }
-    // }
+        BindGroup {
+            gpu: self.gpu.clone(),
+            layout: self.layout.clone(),
+            inner: bind_group,
+        }
+    }
 
     // Recreates the bind group with the same layout inplace, but with the given bindings.
     pub fn rebind(&mut self, bindings: &[Binding]) -> &Self {

@@ -122,7 +122,10 @@ impl ComputePipelineBuilder<'_> {
 
     #[must_use]
     pub fn create_with_bindings<'f>(self, bindings: &'f [&'f BindGroup]) -> ComputePipeline<'f> {
-        let bind_group_layouts = bindings.iter().map(|b| &b.layout).collect::<Vec<_>>();
+        let bind_group_layouts = bindings
+            .iter()
+            .map(|b| b.layout.inner())
+            .collect::<Vec<_>>();
 
         let pipeline = self.create_with_bindings_impl(&bind_group_layouts);
         ComputePipeline {
