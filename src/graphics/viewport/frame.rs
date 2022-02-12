@@ -17,6 +17,7 @@ pub struct Frame<'a> {
     pub view: crate::TextureView,
     pub encoder: ManuallyDrop<CommandEncoder>,
     pub delta_time: Option<f32>,
+    pub resized_to: Option<(u32, u32)>,
 }
 
 impl Frame<'_> {
@@ -103,6 +104,7 @@ impl<'a> Frame<'a> {
             view: frame_view.into(),
             encoder: ManuallyDrop::new(encoder),
             delta_time: None,
+            resized_to: None,
         })
     }
 }

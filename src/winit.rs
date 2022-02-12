@@ -98,7 +98,7 @@ pub struct GpuProgram {
     pub time: Option<ProgramTime>,
 }
 
-type ResizeFn = Box<dyn Fn(&GpuProgram, u32, u32)>;
+type ResizeFn = Box<dyn FnMut(&GpuProgram, u32, u32)>;
 
 impl GpuProgram {
     pub fn builder<'f>(title: &str) -> GpuProgramBuilder<'f> {
@@ -153,8 +153,8 @@ impl GpuProgram {
                     } => {
                         let (width, height) = new_size.into();
                         self.viewport.resize(width, height);
-                        let on_resize = self.on_resize.borrow();
-                        if let Some(handler) = on_resize.as_ref() {
+                        let mut on_resize = self.on_resize.borrow_mut();
+                        if let Some(handler) = on_resize.as_mut() {
                             handler(&self, width, height);
                         }
                     }
@@ -171,8 +171,11 @@ impl GpuProgram {
                     // Handle redrawing
                     // We manually call the event handler. This returns out of the closure iteration
                     winit::event::Event::RedrawRequested(w) => {
-                        if let Some(new_size) = *self.viewport.resize_to.borrow() {
+                        let resized_to = if let Some(new_size) = *self.viewport.resize_to.borrow() {
                             event_handler(Event::Resize(new_size), &self, event_loop, control_flow);
+                            Some(new_size)
+                        } else {
+                            None
                         };
 
                         // We first call the event handler with the original event,
@@ -185,7 +188,7 @@ impl GpuProgram {
                         );
 
                         // Then we create a new Frame and pass it to the event handler
-                        let frame = match self.viewport.begin_frame() {
+                        let mut frame = match self.viewport.begin_frame() {
                             Ok(mut frame) => {
                                 frame.delta_time = self
                                     .time
@@ -199,6 +202,7 @@ impl GpuProgram {
                                 return;
                             }
                         };
+                        frame.resized_to = resized_to;
 
                         // Then we call the event handler with the frame
                         event_handler(Event::RedrawFrame(frame), &self, event_loop, control_flow);
@@ -213,7 +217,7 @@ impl GpuProgram {
             })
     }
 
-    pub fn on_resize(&self, handler: impl Fn(&GpuProgram, u32, u32) + 'static) {
+    pub fn on_resize(&self, handler: impl FnMut(&GpuProgram, u32, u32) + 'static) {
         let mut on_resize = self.on_resize.borrow_mut();
         *on_resize = Some(Box::new(handler));
     }
