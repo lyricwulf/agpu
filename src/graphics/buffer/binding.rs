@@ -28,6 +28,12 @@ impl crate::Buffer {
         }
     }
 
+    /// Alias for `bind_uniform()`.
+    #[must_use]
+    pub fn bind(&self) -> Binding {
+        self.bind_uniform()
+    }
+
     /// Create a storage buffer binding.
     ///
     /// Example GLSL syntax:
