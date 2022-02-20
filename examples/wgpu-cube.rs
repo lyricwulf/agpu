@@ -133,12 +133,12 @@ fn main() -> Result<(), BoxError> {
     ]);
 
     let vertex_layouts = &[Vertex::vertex_buffer_layout::<0>()];
-    let bind_groups = &[&bind_group.layout];
+    let layout: [&wgpu::BindGroupLayout; 1] = [&bind_group.layout];
     let pipeline_builder = gpu
         .new_pipeline("Cube pipeline")
         .with_vertex_fragment(include_bytes!("shader/cube.wgsl"))
         .with_vertex_layouts(vertex_layouts)
-        .with_bind_groups(bind_groups)
+        .with_bind_groups(&layout)
         .cull_back();
     let pipeline = pipeline_builder.create();
     let wire_pipeline = pipeline_builder
