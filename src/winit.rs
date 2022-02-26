@@ -277,11 +277,31 @@ impl<'a> GpuProgramBuilder<'a> {
         self
     }
 
-    // We simply reimplement the winit window builder's methods
+    pub fn build(self) -> Result<GpuProgram, GpuError> {
+        let event_loop = winit::event_loop::EventLoop::new();
+        let window = self.window.build(&event_loop).unwrap();
 
-    // ! WINIT BUILDER METHODS
-    // FIXME: Please, there HAS to be a better way to do this
+        let gpu = self.gpu.clone();
+        let gpu = gpu.with_profiler().build(&window)?;
+        let viewport = gpu.new_viewport(window).create();
 
+        // Create time module if there is a target framerate
+        let time = self.framerate.map(ProgramTime::new);
+
+        Ok(GpuProgram {
+            event_loop: Cell::new(Some(event_loop)),
+            viewport,
+            gpu,
+            on_resize: RefCell::new(None),
+            time,
+        })
+    }
+}
+
+// Reimplement the winit window builder's methods
+// ! WINIT BUILDER METHODS
+// FIXME: Please, there HAS to be a better way to do this
+impl GpuProgramBuilder<'_> {
     /// Requests the window to be of specific dimensions.
     ///
     /// See [`Window::set_inner_size`] for details.
@@ -419,25 +439,5 @@ impl<'a> GpuProgramBuilder<'a> {
     pub fn with_window_icon(mut self, window_icon: winit::window::Icon) -> Self {
         self.window.window.window_icon = Some(window_icon);
         self
-    }
-
-    pub fn build(self) -> Result<GpuProgram, GpuError> {
-        let event_loop = winit::event_loop::EventLoop::new();
-        let window = self.window.build(&event_loop).unwrap();
-
-        let gpu = self.gpu.clone();
-        let gpu = gpu.with_profiler().build(&window)?;
-        let viewport = gpu.new_viewport(window).create();
-
-        // Create time module if there is a target framerate
-        let time = self.framerate.map(ProgramTime::new);
-
-        Ok(GpuProgram {
-            event_loop: Cell::new(Some(event_loop)),
-            viewport,
-            gpu,
-            on_resize: RefCell::new(None),
-            time,
-        })
     }
 }
