@@ -1,8 +1,8 @@
-use crate::Binding;
+use crate::{Binding, GpuHandle};
 
 // 'a: Label str
 pub struct SamplerBuilder<'a, 'gpu> {
-    pub gpu: &'gpu wgpu::Device,
+    pub gpu: &'gpu GpuHandle,
     pub inner: wgpu::SamplerDescriptor<'a>,
 }
 
@@ -14,6 +14,7 @@ impl SamplerBuilder<'_, '_> {
             || self.inner.mipmap_filter == wgpu::FilterMode::Linear;
         let comparison = self.inner.compare.is_some();
         Sampler {
+            gpu: self.gpu.clone(),
             inner,
             filtering,
             comparison,
@@ -76,11 +77,11 @@ impl SamplerBuilder<'_, '_> {
         self
     }
 }
-impl crate::Gpu {
+impl crate::GpuHandle {
     // Named new_sampler so not to shadow create_sampler
     pub fn new_sampler<'a, 'gpu>(&'gpu self, label: &'a str) -> SamplerBuilder<'a, 'gpu> {
         SamplerBuilder {
-            gpu: &self.device,
+            gpu: self,
             inner: wgpu::SamplerDescriptor {
                 label: Some(label),
                 ..Default::default()
@@ -90,6 +91,7 @@ impl crate::Gpu {
 }
 
 pub struct Sampler {
+    gpu: GpuHandle,
     pub inner: wgpu::Sampler,
     filtering: bool,
     comparison: bool,
@@ -107,6 +109,7 @@ impl Sampler {
         };
 
         Binding {
+            gpu: &self.gpu,
             visibility: Binding::DEFAULT_VISIBILITY,
             ty: wgpu::BindingType::Sampler(ty),
             resource: wgpu::BindingResource::Sampler(self),

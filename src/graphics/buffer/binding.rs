@@ -18,6 +18,7 @@ impl crate::Buffer {
     #[must_use]
     pub fn bind_uniform(&self) -> Binding {
         Binding {
+            gpu: &self.gpu,
             visibility: Binding::DEFAULT_VISIBILITY,
             ty: wgpu::BindingType::Buffer {
                 ty: wgpu::BufferBindingType::Uniform,
@@ -45,6 +46,7 @@ impl crate::Buffer {
     #[must_use]
     pub fn bind_storage(&self) -> Binding {
         Binding {
+            gpu: &self.gpu,
             visibility: Binding::DEFAULT_VISIBILITY,
             ty: wgpu::BindingType::Buffer {
                 ty: wgpu::BufferBindingType::Storage { read_only: false },
@@ -67,6 +69,7 @@ impl crate::Buffer {
     #[must_use]
     pub fn bind_storage_readonly(&self) -> Binding {
         Binding {
+            gpu: &self.gpu,
             visibility: Binding::DEFAULT_VISIBILITY,
             ty: wgpu::BindingType::Buffer {
                 ty: wgpu::BufferBindingType::Storage { read_only: true },
@@ -86,6 +89,7 @@ where
     // Can be const following RFC 2632
     pub fn bind_texture(&self) -> Binding {
         Binding {
+            gpu: &self.gpu,
             visibility: Binding::DEFAULT_VISIBILITY,
             ty: wgpu::BindingType::Texture {
                 sample_type: sample_type(self.format),
@@ -111,6 +115,7 @@ where
     // Can be const following RFC 2632
     pub fn bind_storage_texture(&self) -> Binding {
         Binding {
+            gpu: &self.gpu,
             visibility: Binding::DEFAULT_VISIBILITY,
             ty: wgpu::BindingType::StorageTexture {
                 // TODO: different texture view reps?
@@ -140,6 +145,7 @@ macro_rules! gen_binding_vis_fn {
 
 #[derive(Clone, Debug)]
 pub struct Binding<'a> {
+    pub gpu: &'a GpuHandle,
     pub visibility: wgpu::ShaderStages,
     pub ty: wgpu::BindingType,
     pub resource: wgpu::BindingResource<'a>,
@@ -338,6 +344,18 @@ impl BindGroup {
 impl crate::GpuHandle {
     pub fn create_bind_group(&self, bindings: &[Binding]) -> BindGroup {
         BindGroup::new(self.clone(), bindings)
+    }
+}
+pub trait BindingsExt {
+    fn create_group(&self) -> BindGroup;
+}
+impl BindingsExt for [Binding<'_>] {
+    fn create_group(&self) -> BindGroup {
+        if let Some(Binding { gpu, .. }) = self.first() {
+            gpu.create_bind_group(self)
+        } else {
+            unreachable!("[Binding].group() array must not be empty")
+        }
     }
 }
 

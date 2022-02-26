@@ -1,13 +1,29 @@
-pub struct TextureView {
+use std::ops::{Deref, DerefMut};
+
+use crate::GpuHandle;
+
+pub struct TextureView<'a> {
+    pub gpu: &'a GpuHandle,
     pub inner: wgpu::TextureView,
 }
-crate::wgpu_inner_deref!(TextureView);
+impl Deref for TextureView<'_> {
+    type Target = wgpu::TextureView;
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+impl DerefMut for TextureView<'_> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
+}
 
-impl TextureView {
+impl<'a> TextureView<'a> {
     /// Bind the texture view to the given bind group.
     /// This assumes the texture view is a filterable float format with dimension 2
     pub fn bind(&self) -> crate::Binding<'_> {
         crate::Binding {
+            gpu: self.gpu,
             visibility: crate::Binding::DEFAULT_VISIBILITY,
             ty: wgpu::BindingType::Texture {
                 sample_type: wgpu::TextureSampleType::Float { filterable: true },
@@ -35,8 +51,8 @@ impl TextureView {
     }
 }
 
-impl From<wgpu::TextureView> for TextureView {
-    fn from(inner: wgpu::TextureView) -> Self {
-        TextureView { inner }
-    }
-}
+// impl<'a> From<wgpu::TextureView> for TextureView<'a> {
+//     fn from(inner: wgpu::TextureView) -> Self {
+//         TextureView { inner }
+//     }
+// }

@@ -136,6 +136,13 @@ impl GpuHandle {
     pub fn timestamp_report(&self) -> Vec<(String, f32)> {
         self.profiler.timestamp_report(&self.device)
     }
+
+    pub(crate) fn wrap_view(&self, view: wgpu::TextureView) -> crate::TextureView {
+        crate::TextureView {
+            gpu: self,
+            inner: view,
+        }
+    }
 }
 
 impl Deref for GpuHandle {
