@@ -313,12 +313,12 @@ impl<'a> PipelineBuilder<'a> {
         self
     }
 
-    pub fn with_fragment_entry(mut self, entry: &'a str) -> Self {
+    pub const fn with_fragment_entry(mut self, entry: &'a str) -> Self {
         self.fragment_entry = entry;
         self
     }
 
-    pub fn with_vertex_entry(mut self, entry: &'a str) -> Self {
+    pub const fn with_vertex_entry(mut self, entry: &'a str) -> Self {
         self.vertex_entry = entry;
         self
     }
@@ -352,28 +352,51 @@ impl<'a> PipelineBuilder<'a> {
         self
     }
 
-    pub fn with_bind_groups(mut self, bind_groups: &'a [&wgpu::BindGroupLayout]) -> Self {
+    pub const fn with_bind_groups(mut self, bind_groups: &'a [&wgpu::BindGroupLayout]) -> Self {
         self.desc.bind_group_layouts = bind_groups;
         self
     }
 
     /// Cull front faces.
     /// Front is CCW.
-    pub fn cull_front(mut self) -> Self {
+    pub const fn cull_front(mut self) -> Self {
         self.desc.primitive.cull_mode = Some(wgpu::Face::Front);
         self
     }
 
     /// Cull back faces.
     /// Back is CW.
-    pub fn cull_back(mut self) -> Self {
+    pub const fn cull_back(mut self) -> Self {
         self.desc.primitive.cull_mode = Some(wgpu::Face::Back);
         self
     }
 
     /// Draws lines instead of filling in triangles.
-    pub fn wireframe(mut self) -> Self {
+    pub const fn wireframe(mut self) -> Self {
         self.desc.primitive.polygon_mode = wgpu::PolygonMode::Line;
+        self
+    }
+
+    pub const fn vertex_points(mut self) -> Self {
+        self.desc.primitive.topology = wgpu::PrimitiveTopology::PointList;
+        self
+    }
+
+    pub const fn vertex_lines(mut self, strip: bool) -> Self {
+        self.desc.primitive.topology = if strip {
+            wgpu::PrimitiveTopology::LineStrip
+        } else {
+            wgpu::PrimitiveTopology::LineList
+        };
+        self
+    }
+
+    pub const fn vertex_triangles(mut self, strip: bool) -> Self {
+        self.desc.primitive.topology = if strip {
+            wgpu::PrimitiveTopology::TriangleStrip
+        } else {
+            wgpu::PrimitiveTopology::TriangleList
+        };
         self
     }
 
