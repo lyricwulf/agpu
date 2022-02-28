@@ -154,10 +154,7 @@ impl<'a> GpuBuilder<'a> {
             .await
             .map_err(GpuError::RequestDeviceError)?;
 
-        let preferred_format = compatible_surface
-            .as_ref()
-            .map(|s| s.get_preferred_format(&adapter))
-            .flatten();
+        let preferred_format = compatible_surface.and_then(|s| s.get_preferred_format(&adapter));
 
         let profiler = Profiler::new(&device, &queue);
 
