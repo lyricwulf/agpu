@@ -28,7 +28,7 @@ fn main() {
 
 fn execute_gpu(numbers: &[u32]) -> Option<Vec<u32>> {
     // Instantiates instance of WebGPU
-    let gpu = Gpu::builder().build_headless().ok()?;
+    let gpu = GpuCtx::builder().build_headless().ok()?;
 
     // Instantiates buffer with data (`numbers`).
     let storage_buffer = gpu

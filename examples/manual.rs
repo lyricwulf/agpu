@@ -12,7 +12,7 @@ fn main() -> Result<(), agpu::BoxError> {
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
-    let gpu = Gpu::builder().build(&window)?;
+    let gpu = GpuCtx::builder().build(&window)?;
 
     let viewport = gpu.new_viewport(window).create();
 

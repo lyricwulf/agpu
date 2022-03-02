@@ -17,7 +17,7 @@ fn main() {
     let mut state = egui_winit::State::new(&window);
 
     // Initialize the gpu
-    let gpu = Gpu::builder()
+    let gpu = GpuCtx::builder()
         .with_label("Example Gpu Handle")
         .with_backends(wgpu::Backends::VULKAN)
         .with_profiler()
