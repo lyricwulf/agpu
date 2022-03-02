@@ -1,14 +1,14 @@
-use crate::{GpuHandle, Viewport};
+use crate::{Gpu, Viewport};
 use winit::window::Window;
 
 pub struct ViewportBuilder {
-    pub gpu: GpuHandle,
+    pub gpu: Gpu,
     pub window: Window,
     pub format: Option<wgpu::TextureFormat>,
     pub usages: wgpu::TextureUsages,
 }
 impl<'a> ViewportBuilder {
-    pub fn new(gpu: GpuHandle, window: Window) -> Self {
+    pub fn new(gpu: Gpu, window: Window) -> Self {
         Self {
             gpu,
             window,

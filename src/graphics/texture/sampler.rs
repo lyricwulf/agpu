@@ -1,8 +1,8 @@
-use crate::{Binding, GpuHandle};
+use crate::{Binding, Gpu};
 
 // 'a: Label str
 pub struct SamplerBuilder<'a, 'gpu> {
-    pub gpu: &'gpu GpuHandle,
+    pub gpu: &'gpu Gpu,
     pub inner: wgpu::SamplerDescriptor<'a>,
 }
 
@@ -77,7 +77,7 @@ impl SamplerBuilder<'_, '_> {
         self
     }
 }
-impl crate::GpuHandle {
+impl crate::Gpu {
     // Named new_sampler so not to shadow create_sampler
     pub fn new_sampler<'a, 'gpu>(&'gpu self, label: &'a str) -> SamplerBuilder<'a, 'gpu> {
         SamplerBuilder {
@@ -91,7 +91,7 @@ impl crate::GpuHandle {
 }
 
 pub struct Sampler {
-    gpu: GpuHandle,
+    gpu: Gpu,
     pub inner: wgpu::Sampler,
     filtering: bool,
     comparison: bool,

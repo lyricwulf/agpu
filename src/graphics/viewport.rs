@@ -9,7 +9,7 @@ pub use render_pass::*;
 
 use std::{cell::RefCell, ops::Deref};
 
-use crate::{bitor, GpuError, GpuHandle, Texture};
+use crate::{bitor, Gpu, GpuError, Texture};
 
 pub trait BeginRenderFrame {
     fn begin_frame(&self) -> Result<Frame, GpuError>;
@@ -21,7 +21,7 @@ pub trait BeginRenderFrame {
 // * to those RefCells, it should be fine.
 // ? But should we have RefCell anyway? Maybe we should just use external mutability?
 pub struct Viewport {
-    pub gpu: GpuHandle,
+    pub gpu: Gpu,
     pub surface: wgpu::Surface,
     pub window: winit::window::Window,
     /// The swap chain descriptor contains the size and format of the swap chain texture
@@ -41,7 +41,7 @@ pub struct Viewport {
 impl<'a> Viewport {
     #[must_use]
     pub fn new(
-        gpu: GpuHandle,
+        gpu: Gpu,
         surface: wgpu::Surface,
         width: u32,
         height: u32,
@@ -97,7 +97,7 @@ impl<'a> Viewport {
             .configure(&self.gpu.device, &self.sc_desc.borrow());
     }
 
-    fn create_depth_texture(gpu: &GpuHandle, width: u32, height: u32) -> Texture<crate::D2> {
+    fn create_depth_texture(gpu: &Gpu, width: u32, height: u32) -> Texture<crate::D2> {
         gpu.new_texture("Viewport depth texture")
             .as_render_target()
             .with_format(crate::TextureFormat::Depth32Float)

@@ -1,7 +1,7 @@
 use bytemuck::Pod;
 use wgpu::util::DeviceExt;
 
-use crate::{Buffer, GpuHandle};
+use crate::{Buffer, Gpu};
 
 pub enum BufferInitContent<'a> {
     /// The buffer will be initialized with the given data
@@ -11,13 +11,13 @@ pub enum BufferInitContent<'a> {
 }
 
 pub struct BufferBuilder<'a> {
-    pub gpu: GpuHandle,
+    pub gpu: Gpu,
     pub label: Option<&'a str>,
     pub usage: wgpu::BufferUsages,
 }
 impl<'a> BufferBuilder<'a> {
     #[must_use]
-    pub const fn new(gpu: GpuHandle, label: &'a str) -> Self {
+    pub const fn new(gpu: Gpu, label: &'a str) -> Self {
         BufferBuilder {
             gpu,
             label: Some(label),

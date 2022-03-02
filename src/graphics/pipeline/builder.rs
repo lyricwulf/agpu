@@ -6,8 +6,8 @@ use std::borrow::Cow;
 use wgpu::ShaderModuleDescriptor;
 use wgpu::ShaderSource;
 
+use crate::Gpu;
 use crate::GpuError;
-use crate::GpuHandle;
 
 use crate::RenderPipeline;
 
@@ -60,7 +60,7 @@ impl ColorTargetBuilderExt for wgpu::ColorTargetState {
 
 pub struct PipelineBuilder<'a> {
     /// Handle to the Gpu
-    gpu: GpuHandle,
+    gpu: Gpu,
     label: Option<&'a str>,
     /// Data that is used to build the pipeline
     /// This is a seperate struct to take advantage of Default trait derivation
@@ -171,7 +171,7 @@ impl PipelineBuilder<'_> {
     }
 }
 impl<'a> PipelineBuilder<'a> {
-    pub fn new(gpu: GpuHandle, label: &'a str) -> Self {
+    pub fn new(gpu: Gpu, label: &'a str) -> Self {
         const DEFAULT_FRAGMENT_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrgb;
 
         let vertex = wgpu::util::make_spirv(include_bytes!("../../shader/screen.vert.spv"));

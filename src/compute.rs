@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use crate::*;
 
 pub struct ComputePipelineBuilder<'a> {
-    pub(crate) gpu: GpuHandle,
+    pub(crate) gpu: Gpu,
     pub label: Option<&'a str>,
     /// The layout of bind groups for this pipeline.
     pub bind_group_layouts: &'a [&'a wgpu::BindGroupLayout],
@@ -16,7 +16,7 @@ pub struct ComputePipelineBuilder<'a> {
 }
 
 impl ComputePipelineBuilder<'_> {
-    pub fn new(gpu: GpuHandle) -> Self {
+    pub fn new(gpu: Gpu) -> Self {
         Self {
             gpu,
             label: None,
@@ -135,7 +135,7 @@ impl ComputePipelineBuilder<'_> {
     }
 }
 
-impl GpuHandle {
+impl Gpu {
     pub fn new_compute(&self) -> ComputePipelineBuilder {
         ComputePipelineBuilder::new(self.clone())
     }
@@ -143,7 +143,7 @@ impl GpuHandle {
 
 pub struct ComputePipeline<'a> {
     /// We store the gpu handle so we can do standalone compute passes
-    pub(crate) gpu: GpuHandle,
+    pub(crate) gpu: Gpu,
     pub inner: wgpu::ComputePipeline,
     pub bind_groups: &'a [&'a BindGroup],
     pub push_constants: &'a [u8],

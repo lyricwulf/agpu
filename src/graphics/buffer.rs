@@ -11,12 +11,12 @@ pub use view::*;
 mod vertex_layout;
 pub use vertex_layout::*;
 
-use crate::GpuHandle;
+use crate::Gpu;
 use std::ops::Deref;
 
 /// * Probably best used as `RefCell<Buffer>`
 pub struct Buffer {
-    pub(crate) gpu: GpuHandle,
+    pub(crate) gpu: Gpu,
     pub(crate) label: String,
     pub(crate) inner: wgpu::Buffer,
     pub(crate) usages: wgpu::BufferUsages,

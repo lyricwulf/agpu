@@ -2,7 +2,7 @@ use std::{ops::Deref, rc::Rc};
 
 use wgpu::BindGroupEntry;
 
-use crate::GpuHandle;
+use crate::Gpu;
 
 impl crate::Buffer {
     /// Create a uniform buffer binding.
@@ -145,7 +145,7 @@ macro_rules! gen_binding_vis_fn {
 
 #[derive(Clone, Debug)]
 pub struct Binding<'a> {
-    pub gpu: &'a GpuHandle,
+    pub gpu: &'a Gpu,
     pub visibility: wgpu::ShaderStages,
     pub ty: wgpu::BindingType,
     pub resource: wgpu::BindingResource<'a>,
@@ -202,7 +202,7 @@ impl Binding<'_> {
 
 #[derive(Clone, Debug)]
 pub struct BindGroupLayout {
-    gpu: GpuHandle,
+    gpu: Gpu,
     inner: Rc<wgpu::BindGroupLayout>,
 }
 impl Deref for BindGroupLayout {
@@ -212,7 +212,7 @@ impl Deref for BindGroupLayout {
     }
 }
 impl BindGroupLayout {
-    pub fn from_wgpu(gpu: GpuHandle, layout: wgpu::BindGroupLayout) -> Self {
+    pub fn from_wgpu(gpu: Gpu, layout: wgpu::BindGroupLayout) -> Self {
         Self {
             gpu,
             inner: Rc::new(layout),
@@ -249,14 +249,14 @@ impl BindGroupLayout {
 
 #[derive(Debug)]
 pub struct BindGroup {
-    gpu: crate::GpuHandle,
+    gpu: crate::Gpu,
     pub layout: BindGroupLayout,
     pub inner: wgpu::BindGroup,
 }
 crate::wgpu_inner_deref!(BindGroup);
 
 impl BindGroup {
-    pub fn new(gpu: crate::GpuHandle, bindings: &[Binding]) -> Self {
+    pub fn new(gpu: crate::Gpu, bindings: &[Binding]) -> Self {
         let bind_group_layout = gpu.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: None,
             entries: bindings
@@ -341,7 +341,7 @@ impl BindGroup {
         self
     }
 }
-impl crate::GpuHandle {
+impl crate::Gpu {
     pub fn create_bind_group(&self, bindings: &[Binding]) -> BindGroup {
         BindGroup::new(self.clone(), bindings)
     }

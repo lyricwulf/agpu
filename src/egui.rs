@@ -2,11 +2,11 @@
 
 use std::ops::{Deref, DerefMut};
 
-use crate::{BindGroup, Buffer, GpuHandle, RenderPass, RenderPipeline, Sampler, Texture};
+use crate::{BindGroup, Buffer, Gpu, RenderPass, RenderPipeline, Sampler, Texture};
 
 pub struct Egui {
     pub ctx: egui::CtxRef,
-    gpu: GpuHandle,
+    gpu: Gpu,
     vertex_buffers: Vec<(Buffer, Buffer)>,
     ubo_buffer: Buffer,
     _font_texture: Texture<crate::D2>,
@@ -33,7 +33,7 @@ impl Egui {
         array_stride: (2 + 2 + 1) * 4,
     };
 
-    pub fn new(gpu: crate::GpuHandle, width: u32, height: u32) -> Self {
+    pub fn new(gpu: crate::Gpu, width: u32, height: u32) -> Self {
         // Create the egui context
         let mut ctx = egui::CtxRef::default();
         // The vertex layout is a static constant

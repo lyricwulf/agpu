@@ -1,6 +1,6 @@
 use std::ops::{Deref, DerefMut};
 
-use crate::{CommandEncoder, Frame, GpuHandle, RenderPipeline, Texture};
+use crate::{CommandEncoder, Frame, Gpu, RenderPipeline, Texture};
 
 pub struct RenderPassBuilder<'a, 'b> {
     /// Encoder is used to create the render pass on build()
@@ -97,7 +97,7 @@ impl<'a> DepthAttachmentBuild for wgpu::RenderPassDepthStencilAttachment<'a> {
 }
 
 impl<'a, 'b> RenderPassBuilder<'a, 'b> {
-    pub fn new(encoder: &'a mut CommandEncoder, _gpu: &'a mut GpuHandle) -> Self {
+    pub fn new(encoder: &'a mut CommandEncoder, _gpu: &'a mut Gpu) -> Self {
         Self {
             encoder,
             desc: wgpu::RenderPassDescriptor {

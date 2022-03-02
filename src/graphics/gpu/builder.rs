@@ -2,7 +2,7 @@ use futures::executor::block_on;
 use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
 
 use crate::{
-    graphics::{Gpu, GpuError, GpuHandle},
+    graphics::{Gpu, GpuCtx, GpuError},
     Profiler,
 };
 
@@ -103,14 +103,14 @@ impl<'a> GpuBuilder<'a> {
     /// Shorthand for build_windowed_sync().
     /// # Errors
     /// Errors when the inner build() fails.
-    pub fn build<W>(self, window: &W) -> Result<GpuHandle, GpuError>
+    pub fn build<W>(self, window: &W) -> Result<Gpu, GpuError>
     where
         W: HasRawWindowHandle,
     {
         block_on(self.build_impl(Some(window)))
     }
 
-    pub fn build_headless(self) -> Result<GpuHandle, GpuError> {
+    pub fn build_headless(self) -> Result<Gpu, GpuError> {
         block_on(self.build_impl::<NoWindow>(None))
     }
 
@@ -118,7 +118,7 @@ impl<'a> GpuBuilder<'a> {
     /// Use `build_sync` for synchronous.
     /// # Errors
     /// Errors when a connection to the GPU could not be established.
-    pub async fn build_impl<W>(self, window: Option<&W>) -> Result<GpuHandle, GpuError>
+    pub async fn build_impl<W>(self, window: Option<&W>) -> Result<Gpu, GpuError>
     where
         W: HasRawWindowHandle,
     {
@@ -158,7 +158,7 @@ impl<'a> GpuBuilder<'a> {
 
         let profiler = Profiler::new(&device, &queue);
 
-        let gpu = Gpu {
+        let gpu = GpuCtx {
             instance,
             adapter,
             device,

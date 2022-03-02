@@ -1,16 +1,16 @@
-use crate::GpuHandle;
+use crate::Gpu;
 
 mod builder;
 pub use builder::*;
 
 pub struct RenderPipeline {
-    pub gpu: GpuHandle,
+    pub gpu: Gpu,
     pub inner: wgpu::RenderPipeline,
     pub depth_stencil: Option<wgpu::DepthStencilState>,
 }
 impl RenderPipeline {
     pub fn new(
-        gpu: GpuHandle,
+        gpu: Gpu,
         inner: wgpu::RenderPipeline,
         depth_stencil: Option<wgpu::DepthStencilState>,
     ) -> Self {

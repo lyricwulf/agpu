@@ -19,7 +19,7 @@ use winit::window::Window;
 ///
 /// [builder]: Gpu::builder()
 #[derive(Debug)]
-pub struct Gpu {
+pub struct GpuCtx {
     /// This is the instance for wgpu itself. We shouldn't need more than 1 in the
     /// life of a program.
     pub instance: wgpu::Instance,
@@ -30,10 +30,10 @@ pub struct Gpu {
     pub profiler: Profiler,
     pub preferred_format: Option<wgpu::TextureFormat>,
 }
-impl Gpu {
+impl GpuCtx {
     #[allow(clippy::new_ret_no_self)]
     /// Shortcut to Self::builder().build() with the default settings.
-    pub fn new<W>(window: &W) -> Result<GpuHandle, GpuError>
+    pub fn new<W>(window: &W) -> Result<Gpu, GpuError>
     where
         W: HasRawWindowHandle,
     {
@@ -48,13 +48,13 @@ impl Gpu {
 
     /// Converts the Gpu into a `GpuHandle` which can be passed around by clone
     #[must_use]
-    pub fn into_handle(self) -> GpuHandle {
-        GpuHandle {
+    pub fn into_handle(self) -> Gpu {
+        Gpu {
             context: Rc::new(self),
         }
     }
 }
-impl Deref for Gpu {
+impl Deref for GpuCtx {
     type Target = wgpu::Device;
     fn deref(&self) -> &Self::Target {
         &self.device
@@ -66,10 +66,10 @@ impl Deref for Gpu {
 /// more references to it. It follows that any struct with a `GpuHandle` will be
 /// always be guaranteed a valid reference to the `Gpu`.
 #[derive(Clone, Debug)]
-pub struct GpuHandle {
-    context: Rc<Gpu>,
+pub struct Gpu {
+    context: Rc<GpuCtx>,
 }
-impl GpuHandle {
+impl Gpu {
     /// Create a Viewport for displaying to the given window.
     // Lifetime `a`: The reference Gpu and Window must outlive ViewportBuilder
     #[must_use]
@@ -145,8 +145,8 @@ impl GpuHandle {
     }
 }
 
-impl Deref for GpuHandle {
-    type Target = Gpu;
+impl Deref for Gpu {
+    type Target = GpuCtx;
     fn deref(&self) -> &Self::Target {
         &self.context
     }
@@ -155,7 +155,7 @@ impl Deref for GpuHandle {
 pub struct CommandEncoder {
     inner: ManuallyDrop<wgpu::CommandEncoder>,
     finished: bool,
-    pub(crate) gpu: GpuHandle,
+    pub(crate) gpu: Gpu,
 }
 impl CommandEncoder {
     pub fn finish(mut self) -> wgpu::CommandBuffer {

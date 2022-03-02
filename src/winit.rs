@@ -6,7 +6,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use crate::{Frame, GpuBuilder, GpuError, GpuHandle, Viewport};
+use crate::{Frame, Gpu, GpuBuilder, GpuError, Viewport};
 
 mod display;
 
@@ -92,7 +92,7 @@ pub struct GpuProgram {
     /// we wrap it in Option to allow for transfer of ownership
     /// and Cell to allow for interior mutability.
     pub event_loop: Cell<Option<winit::event_loop::EventLoop<()>>>,
-    pub gpu: GpuHandle,
+    pub gpu: Gpu,
     pub viewport: Viewport,
     pub on_resize: RefCell<Option<ResizeFn>>,
     pub time: Option<ProgramTime>,

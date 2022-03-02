@@ -7,7 +7,7 @@ pub use sampler::*;
 mod builder;
 pub use builder::*;
 
-use crate::GpuHandle;
+use crate::Gpu;
 
 // Re-export TextureFormat
 pub use wgpu::TextureFormat;
@@ -29,7 +29,7 @@ pub struct Texture<D>
 where
     D: TextureDimensions,
 {
-    pub(crate) gpu: GpuHandle,
+    pub(crate) gpu: Gpu,
     inner: wgpu::Texture,
     pub view: wgpu::TextureView,
     pub format: wgpu::TextureFormat,

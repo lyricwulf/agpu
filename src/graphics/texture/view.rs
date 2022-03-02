@@ -1,9 +1,9 @@
 use std::ops::{Deref, DerefMut};
 
-use crate::GpuHandle;
+use crate::Gpu;
 
 pub struct TextureView<'a> {
-    pub gpu: &'a GpuHandle,
+    pub gpu: &'a Gpu,
     pub inner: wgpu::TextureView,
 }
 impl Deref for TextureView<'_> {

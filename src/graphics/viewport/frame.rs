@@ -1,4 +1,4 @@
-use crate::{CommandEncoder, GpuError, GpuHandle, RenderPassBuilder};
+use crate::{CommandEncoder, Gpu, GpuError, RenderPassBuilder};
 use std::mem::ManuallyDrop;
 
 /// Convenience wrapper for a frame buffer you render to.
@@ -8,7 +8,7 @@ use std::mem::ManuallyDrop;
 /// but since wgpu 0.11 it now wraps the surface texture
 pub struct Frame<'a> {
     /// The gpu handle is ref'd because of the short lifetime of Frame
-    pub(crate) gpu: &'a GpuHandle,
+    pub(crate) gpu: &'a Gpu,
     /// The surface texture provided by the surface
     /// ManuallyDrop because we call `.present()` on it to present to screen
     surface_texture: ManuallyDrop<wgpu::SurfaceTexture>,
@@ -81,7 +81,7 @@ impl<'a> Frame<'a> {
     /// Creates a new Frame from the Surface
     /// We
     pub fn new(
-        gpu: &'a GpuHandle,
+        gpu: &'a Gpu,
         surface: &wgpu::Surface,
         depth: wgpu::TextureView,
     ) -> Result<Self, GpuError> {

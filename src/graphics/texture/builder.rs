@@ -1,7 +1,7 @@
 use core::num::NonZeroU32;
 
 pub struct TextureBuilder<'a> {
-    gpu: crate::GpuHandle,
+    gpu: crate::Gpu,
     texture: wgpu::TextureDescriptor<'a>,
     view: wgpu::TextureViewDescriptor<'a>,
 }
@@ -9,7 +9,7 @@ pub struct TextureBuilder<'a> {
 impl TextureBuilder<'_> {
     pub const DEFAULT_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba8UnormSrgb;
 
-    pub fn new(gpu: crate::GpuHandle) -> Self {
+    pub fn new(gpu: crate::Gpu) -> Self {
         Self {
             gpu,
             texture: wgpu::TextureDescriptor {
@@ -144,7 +144,7 @@ impl TextureBuilder<'_> {
     }
 }
 
-impl crate::GpuHandle {
+impl crate::Gpu {
     pub fn new_texture<'a>(&self, label: &'a str) -> TextureBuilder<'a> {
         let mut builder = TextureBuilder::new(self.clone());
         builder.texture.label = Some(label);
