@@ -1,3 +1,5 @@
+//! An implementation of stencil using depth buffer
+
 use agpu::prelude::*;
 
 fn main() -> Result<(), agpu::BoxError> {
@@ -17,7 +19,9 @@ fn main() -> Result<(), agpu::BoxError> {
     let example_pipeline_2 = program
         .gpu
         .new_pipeline("Example pipeline 2")
-        .with_vertex_fragment(include_bytes!("shader/hello-triangle-alt.wgsl"))
+        .with_vertex_fragment(include_bytes!("shader/hello-triangle.wgsl"))
+        .with_vertex_entry("vs_2")
+        .with_fragment_entry("fs_2")
         .with_depth()
         .depth_compare(agpu::wgpu::CompareFunction::Equal)
         .depth_bias(0, 1000.0)
