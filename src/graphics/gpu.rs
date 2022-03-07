@@ -143,6 +143,10 @@ impl Gpu {
             inner: view,
         }
     }
+
+    pub fn builder<'a>() -> GpuBuilder<'a> {
+        GpuBuilder::new()
+    }
 }
 
 impl Deref for Gpu {
