@@ -1,7 +1,7 @@
 [package]
 name = "agpu-macro"
 version = "0.1.2"
-edition = "2018"
+edition = "2021"
 resolver = "2"
 description = "agpu derive macros"
 homepage = "https://github.com/lyricwulf/agpu"
