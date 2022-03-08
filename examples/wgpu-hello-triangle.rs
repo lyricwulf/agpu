@@ -3,15 +3,7 @@ const GREEN: u32 = 0x00FF00FF;
 fn main() -> Result<(), agpu::BoxError> {
     let mut program = agpu::GpuProgram::builder("Triangle");
     program.gpu = program.gpu.with_backends(agpu::Backends::GL);
-    let program = match program.build() {
-        Ok(program) => program,
-        Err(agpu::GpuError::RequestDeviceError(e)) => {
-            panic!("{}", e);
-        }
-        Err(err) => {
-            panic!("{}", err);
-        }
-    };
+    let program = program.build()?;
 
     let example_pipeline = program
         .gpu
