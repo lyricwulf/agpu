@@ -15,9 +15,7 @@ proc-macro = true
 [dependencies]
 syn = "1.0"
 quote = "1.0"
-bytemuck = "1.7"
-tracing = "0.1"
 
 [dev-dependencies]  
-# Test using trait
+# Test derive traits
 agpu = { path = "../" }
