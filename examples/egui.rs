@@ -14,7 +14,7 @@ fn main() {
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
-    let mut state = egui_winit::State::new(&window);
+    let mut state = egui_winit::State::new(u32::MAX as _, &window);
 
     // Initialize the gpu
     let gpu = GpuCtx::builder()
@@ -35,7 +35,7 @@ fn main() {
         .with_bind_groups(&[])
         .create();
 
-    let mut egui_ctx = agpu::egui::Egui::new(gpu.clone(), viewport.width(), viewport.height());
+    let mut egui = agpu::egui::Egui::new(gpu.clone(), viewport.width(), viewport.height());
 
     // let mut stat_counts = [0; 5];
     let mut timestamps: Vec<(String, f32)> = vec![];
@@ -47,14 +47,14 @@ fn main() {
 
         match event {
             Event::WindowEvent { event, .. } => {
-                if state.on_event(&egui_ctx, &event) {
+                if state.on_event(&egui.ctx, &event) {
                     return;
                 };
 
                 match event {
                     WindowEvent::Resized(new_size) => {
                         viewport.resize(new_size.width, new_size.height);
-                        egui_ctx.resize(new_size.width, new_size.height)
+                        egui.resize(new_size.width, new_size.height)
                     }
                     WindowEvent::CloseRequested => {
                         *control_flow = ControlFlow::Exit;
@@ -67,17 +67,17 @@ fn main() {
             }
             Event::RedrawRequested(_) => {
                 // UI logic
-                let output = egui_ctx.run(state.take_egui_input(&viewport.window), |ui| {
+                let output = egui.run(state.take_egui_input(&viewport.window), |ui| {
                     egui::CentralPanel::default()
                         .frame(egui::Frame {
-                            margin: egui::vec2(100.0, 100.0),
+                            margin: egui::vec2(100.0, 100.0).into(),
                             ..egui::Frame::none()
                         })
                         .show(ui, |ui| {
                             egui::SidePanel::left("dog")
                                 .frame(egui::Frame {
-                                    margin: egui::vec2(40.0, 40.0),
-                                    corner_radius: 4.0,
+                                    margin: egui::vec2(40.0, 40.0).into(),
+                                    rounding: 4.0.into(),
                                     fill: egui::Color32::from_rgb(4, 4, 4),
                                     ..egui::Frame::none()
                                 })
@@ -127,7 +127,7 @@ fn main() {
                     });
                 });
 
-                state.handle_output(&viewport.window, &egui_ctx, output);
+                state.handle_platform_output(&viewport.window, &egui.ctx, output);
 
                 // Render gpu
                 let mut frame = match viewport.begin_frame() {
@@ -152,7 +152,7 @@ fn main() {
                 {
                     let mut ui_pass = frame.render_pass("UI Render Pass").begin();
 
-                    egui_ctx.draw(&mut ui_pass, viewport.width(), viewport.height());
+                    egui.draw(&mut ui_pass, viewport.width(), viewport.height());
                 }
 
                 // if let Ok(stats) = gpu.total_statistics() {

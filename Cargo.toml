@@ -1,7 +1,7 @@
 [package]
 name = "agpu"
-version = "0.1.1"
-edition = "2018"
+version = "0.1.2"
+edition = "2021"
 resolver = "2"
 description = "Abstract GPU Project"
 homepage = "https://github.com/lyricwulf/agpu"
@@ -22,6 +22,7 @@ tracing = "0.1"
 
 [dependencies.agpu-macro]
 version = "0.1.1"
+path = "./macro"
 optional = true
 
 [dependencies.winit]
@@ -30,8 +31,7 @@ optional = true
 
 [dependencies.egui]
 optional = true 
-git = "https://github.com/emilk/egui"
-rev = "ee002145117df5be9c8889bfbcf569f3493dec79"
+version = "0.17"
 features = ["convert_bytemuck"]
 
 [features]
@@ -43,6 +43,6 @@ default = ["profiler", "egui", "winit", "macro", "half"]
 # Used in example
 tracing-subscriber = "0.3"
 # egui example
-egui-winit = { git = "https://github.com/emilk/egui", rev = "ee002145117df5be9c8889bfbcf569f3493dec79" }
+egui-winit = "0.17"
 # math lib for examples
 nalgebra = "0.30"

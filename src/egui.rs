@@ -1,22 +1,24 @@
+//! This example is currently broken because I don't understand the new egui
+//! textures since 0.17
+
 #![cfg(feature = "egui")]
 
 use std::ops::{Deref, DerefMut};
 
-use crate::{BindGroup, Buffer, Gpu, RenderPass, RenderPipeline, Sampler, Texture};
+use crate::{BindGroup, Buffer, Gpu, RenderPass, RenderPipeline, Sampler};
 
 pub struct Egui {
-    pub ctx: egui::CtxRef,
+    pub ctx: egui::Context,
     gpu: Gpu,
     vertex_buffers: Vec<(Buffer, Buffer)>,
     ubo_buffer: Buffer,
-    _font_texture: Texture<crate::D2>,
     _linear_sampler: Sampler,
     bind_group: BindGroup,
     pipeline: RenderPipeline,
     last_meshes: Vec<egui::epaint::ClippedMesh>,
 }
 impl Deref for Egui {
-    type Target = egui::CtxRef;
+    type Target = egui::Context;
     fn deref(&self) -> &Self::Target {
         &self.ctx
     }
@@ -35,7 +37,7 @@ impl Egui {
 
     pub fn new(gpu: crate::Gpu, width: u32, height: u32) -> Self {
         // Create the egui context
-        let mut ctx = egui::CtxRef::default();
+        let ctx = egui::Context::default();
         // The vertex layout is a static constant
 
         // Create the UBO buffer
@@ -44,28 +46,6 @@ impl Egui {
             .as_uniform_buffer()
             .allow_copy_to()
             .create(&[width as f32, height as f32]);
-
-        // Create the font texture
-        // Egui ctx.texture() requires that we first begin a frame
-        ctx.run(Default::default(), |_| {}).0.take();
-        // Now we can generate the texture
-        let egui_font_texture = ctx.texture();
-
-        // Convert the texture into rgba_srgb format
-        let mut pixels: Vec<u8> = Vec::with_capacity(egui_font_texture.pixels.len() * 4);
-        for srgba in egui_font_texture.srgba_pixels(0.33) {
-            pixels.push(srgba.r());
-            pixels.push(srgba.g());
-            pixels.push(srgba.b());
-            pixels.push(srgba.a());
-        }
-        let font_texture = gpu.new_texture("EGUI font texture").allow_binding().create(
-            (
-                egui_font_texture.width as u32,
-                egui_font_texture.height as u32,
-            ),
-            &pixels,
-        );
 
         // Create the linear sampler
         let linear_sampler = gpu
@@ -76,7 +56,6 @@ impl Egui {
         // Create the bind group and pipeline
         let bind_group = gpu.create_bind_group(&[
             ubo_buffer.bind_uniform(),
-            font_texture.bind_texture().in_fragment(),
             linear_sampler.bind().in_fragment(),
         ]);
         let pipeline = gpu
@@ -92,7 +71,6 @@ impl Egui {
             gpu,
             vertex_buffers: Vec::new(),
             ubo_buffer,
-            _font_texture: font_texture,
             _linear_sampler: linear_sampler,
             bind_group,
             pipeline,
@@ -108,13 +86,13 @@ impl Egui {
     pub fn run(
         &mut self,
         new_input: egui::RawInput,
-        run_ui: impl FnOnce(&egui::CtxRef),
-    ) -> egui::Output {
-        let (output, shapes) = self.ctx.run(new_input, run_ui);
-        let meshes = self.ctx.tessellate(shapes);
+        run_ui: impl FnOnce(&egui::Context),
+    ) -> egui::PlatformOutput {
+        let output = self.ctx.run(new_input, run_ui);
+        let meshes = self.ctx.tessellate(output.shapes);
         self.update_buffers(&meshes);
         self.last_meshes = meshes;
-        output
+        output.platform_output
     }
 
     fn update_buffers(&mut self, meshes: &[egui::epaint::ClippedMesh]) {
