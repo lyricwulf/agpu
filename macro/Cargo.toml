@@ -7,7 +7,7 @@ description = "agpu derive macros"
 homepage = "https://github.com/lyricwulf/agpu"
 repository = "https://github.com/lyricwulf/agpu"
 keywords = ["gpu", "graphics", "compute"]
-license = "MIT"
+license = "MIT OR Apache-2.0"
 
 [lib]
 proc-macro = true
