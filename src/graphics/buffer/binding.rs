@@ -92,7 +92,7 @@ where
             gpu: &self.gpu,
             visibility: Binding::DEFAULT_VISIBILITY,
             ty: wgpu::BindingType::Texture {
-                sample_type: sample_type(self.format),
+                sample_type: sample_type(*self.format),
                 // TODO: different texture view reps?
                 view_dimension: match self.size.dim() {
                     wgpu::TextureDimension::D1 => wgpu::TextureViewDimension::D1,
@@ -125,7 +125,7 @@ where
                     wgpu::TextureDimension::D3 => wgpu::TextureViewDimension::D3,
                 },
                 access: wgpu::StorageTextureAccess::ReadWrite,
-                format: self.format,
+                format: *self.format,
             },
             resource: wgpu::BindingResource::TextureView(&self.view),
         }

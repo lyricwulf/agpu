@@ -258,9 +258,12 @@ pub struct GpuProgramBuilder<'a> {
     pub window: winit::window::WindowBuilder,
     pub gpu: GpuBuilder<'a>,
     pub framerate: Option<f32>,
+    /// Force the gpu surface to be srgb (or linear)
+    /// Defaults to system preferred
+    pub srgb: Option<bool>,
 }
 
-impl<'a> GpuProgramBuilder<'a> {
+impl GpuProgramBuilder<'_> {
     #[must_use]
     pub fn new() -> Self {
         Self::default()
@@ -274,6 +277,12 @@ impl<'a> GpuProgramBuilder<'a> {
     /// Sets the window to continuously draw at the given framerate.
     pub fn with_framerate(mut self, framerate: f32) -> Self {
         self.framerate = Some(framerate);
+        self
+    }
+
+    /// Forces the gpu surface to be srgb (or linear)
+    pub fn with_srgb(mut self, srgb: bool) -> Self {
+        self.srgb = Some(srgb);
         self
     }
 

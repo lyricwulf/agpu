@@ -1,29 +1,13 @@
 mod view;
 pub use view::*;
-
 mod sampler;
 pub use sampler::*;
-
 mod builder;
 pub use builder::*;
+mod format;
+pub use format::*;
 
 use crate::Gpu;
-
-// Re-export TextureFormat
-pub use wgpu::TextureFormat;
-
-pub trait TextureFormatExt {
-    fn target(&self) -> wgpu::ColorTargetState;
-}
-impl TextureFormatExt for TextureFormat {
-    fn target(&self) -> wgpu::ColorTargetState {
-        wgpu::ColorTargetState {
-            format: *self,
-            blend: None,
-            write_mask: wgpu::ColorWrites::ALL,
-        }
-    }
-}
 
 pub struct Texture<D>
 where
@@ -32,7 +16,7 @@ where
     pub(crate) gpu: Gpu,
     inner: wgpu::Texture,
     pub view: wgpu::TextureView,
-    pub format: wgpu::TextureFormat,
+    pub format: TexFormat,
     pub size: D,
     pub usage: wgpu::TextureUsages,
 }
@@ -83,7 +67,7 @@ where
             mip_level_count: 1,
             sample_count: 1,
             dimension: size.dim(),
-            format: self.format,
+            format: *self.format,
             usage: self.usage,
         });
 
@@ -107,12 +91,12 @@ where
             mip_level_count: 1,
             sample_count: 1,
             dimension: size.dim(),
-            format: self.format,
+            format: *self.format,
             usage: new_usage,
         });
 
         // Don't copy depth buffer! (InvalidDepthTextureExtent)
-        match self.format {
+        match *self.format {
             wgpu::TextureFormat::Depth32Float
             | wgpu::TextureFormat::Depth24Plus
             | wgpu::TextureFormat::Depth24PlusStencil8 => {}

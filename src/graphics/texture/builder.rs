@@ -57,7 +57,7 @@ impl TextureBuilder<'_> {
             gpu: self.gpu,
             inner: texture,
             view,
-            format: self.texture.format,
+            format: crate::TexFormat(self.texture.format),
             size,
             usage: self.texture.usage,
         }
@@ -79,7 +79,7 @@ impl TextureBuilder<'_> {
             gpu: self.gpu,
             inner: texture,
             view,
-            format: self.texture.format,
+            format: crate::TexFormat(self.texture.format),
             size,
             usage: self.texture.usage,
         }
