@@ -45,4 +45,4 @@ tracing-subscriber = "0.3"
 # egui example
 egui-winit = "0.17"
 # math lib for examples
-nalgebra = "0.30"
+nalgebra = "0.31"
