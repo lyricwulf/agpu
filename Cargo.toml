@@ -12,7 +12,7 @@ license = "MIT OR Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-wgpu = { version = "0.12", features = ["spirv"] }
+wgpu = { version = "0.13", features = ["spirv"] }
 half = { version = "1.8", optional = true }
 futures = "0.3"
 bytemuck = "1.7"
