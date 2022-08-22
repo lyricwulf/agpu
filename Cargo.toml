@@ -43,6 +43,6 @@ default = ["profiler", "egui", "winit", "macro", "half"]
 # Used in example
 tracing-subscriber = "0.3"
 # egui example
-egui-winit = "0.17"
+egui-winit = "0.19"
 # math lib for examples
 nalgebra = "0.30"
